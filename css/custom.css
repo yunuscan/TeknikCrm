@@ -1,0 +1,119 @@
+/* ============================================================
+   TeknikCRM - Ozel Stiller
+   ============================================================ */
+
+/* Sidebar gecis animasyonu */
+#sidebar {
+    transition: transform 0.25s ease-in-out;
+}
+
+/* Icerik alani giris animasyonu */
+#content-area > * {
+    animation: fadeInUp 0.18s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tablo satirlari hover gecisi */
+tbody tr {
+    transition: background-color 0.1s ease;
+}
+
+/* Ozel scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* Modal arkaplan overlay */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Aktif sidebar ogesi */
+.sidebar-item-active {
+    background-color: #eef2ff;
+    color: #4338ca;
+}
+
+.sidebar-item-active svg {
+    color: #4338ca;
+}
+
+/* Destek no rozeti */
+.support-number-badge {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+/* Bakimı yaklaşan lisans satırı */
+.row-warning {
+    background-color: #fffbeb;
+}
+
+.row-danger {
+    background-color: #fef2f2;
+}
+
+/* Yeni Destek butonu - belirgin ve hızlı erişilebilir */
+.btn-new-support {
+    box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.btn-new-support:hover {
+    box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-new-support:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px 0 rgba(99, 102, 241, 0.4);
+}
+
+/* Takvim renk kodlaması */
+.cal-status-tamamlandi { border-left: 4px solid #16a34a; }
+.cal-status-bekliyor   { border-left: 4px solid #ca8a04; }
+.cal-status-gecikti    { border-left: 4px solid #dc2626; }
+.cal-status-planlandi  { border-left: 4px solid #2563eb; }
+
+/* Baskı stilleri */
+@media print {
+    #sidebar,
+    nav,
+    #toast-container,
+    .no-print {
+        display: none !important;
+    }
+
+    .sm\:ml-64 {
+        margin-left: 0 !important;
+    }
+
+    #content-area {
+        padding: 0 !important;
+    }
+}

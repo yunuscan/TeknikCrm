@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giris Yap - TeknikCRM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="h-full bg-slate-100 flex items-center justify-center">
+
+    <div class="w-full max-w-md px-4">
+        <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
+
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-indigo-700 tracking-tight">TeknikCRM</h1>
+                <p class="text-gray-400 text-sm mt-1.5">Teknik Destek ve Musteri Yonetim Sistemi</p>
+            </div>
+
+            <!-- Bildirim alani -->
+            <div id="alert-area" class="hidden mb-5 p-3.5 rounded-lg text-sm border"></div>
+
+            <!-- Giris formu -->
+            <form id="login-form" novalidate class="space-y-5">
+                <div>
+                    <label for="email" class="block mb-1.5 text-sm font-medium text-gray-700">
+                        E-posta Adresi
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                        class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
+                        placeholder="ad.soyad@sirket.com"
+                    >
+                </div>
+                <div>
+                    <label for="password" class="block mb-1.5 text-sm font-medium text-gray-700">
+                        Sifre
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                        class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
+                        placeholder="Sifrenizi girin"
+                    >
+                </div>
+                <button
+                    type="submit"
+                    id="btn-login"
+                    class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    Giris Yap
+                </button>
+            </form>
+
+            <div class="mt-5 text-center">
+                <button
+                    id="btn-show-reset"
+                    class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline focus:outline-none"
+                >
+                    Sifremi Unuttum
+                </button>
+            </div>
+
+            <!-- Sifre sifirlama formu -->
+            <form id="reset-form" class="hidden mt-5 pt-5 border-t border-gray-200 space-y-4">
+                <p class="text-sm text-gray-500">
+                    Kayitli e-posta adresinizi girin. Sifre sifirlama baglantisi gonderilecektir.
+                </p>
+                <div>
+                    <label for="reset-email" class="block mb-1.5 text-sm font-medium text-gray-700">
+                        E-posta Adresi
+                    </label>
+                    <input
+                        type="email"
+                        id="reset-email"
+                        required
+                        class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="ad.soyad@sirket.com"
+                    >
+                </div>
+                <button
+                    type="submit"
+                    class="w-full py-2.5 px-4 bg-gray-700 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors"
+                >
+                    Sifirlama Baglantisi Gonder
+                </button>
+                <button
+                    type="button"
+                    id="btn-back-to-login"
+                    class="w-full py-2 text-sm text-gray-500 hover:text-gray-700"
+                >
+                    Giris formuna don
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-xs text-gray-400 mt-5">
+            TeknikCRM &copy; <span id="year"></span>
+        </p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+    <script type="module">
+        import { supabase } from './js/supabase-config.js';
+
+        // Yil guncelle
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Aktif oturum varsa ana sayfaya yonlendir
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            window.location.replace('index.html');
+        }
+
+        // URL parametreleri ile uyari goster
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('reason') === 'inactive') {
+            showAlert('Hesabiniz pasif durumda. Yonetici ile iletisime gecin.', 'error');
+        }
+
+        // ---------------------------------------------------
+        // Yardimci: Alert goster
+        // ---------------------------------------------------
+        function showAlert(message, type = 'info') {
+            const el = document.getElementById('alert-area');
+            const styles = {
+                error:   'bg-red-50 border-red-300 text-red-800',
+                success: 'bg-green-50 border-green-300 text-green-800',
+                info:    'bg-blue-50 border-blue-300 text-blue-800',
+            };
+            el.className = `mb-5 p-3.5 rounded-lg text-sm border ${styles[type] || styles.info}`;
+            el.textContent = message;
+            el.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            document.getElementById('alert-area').classList.add('hidden');
+        }
+
+        function setLoading(isLoading) {
+            const btn = document.getElementById('btn-login');
+            btn.disabled = isLoading;
+            btn.textContent = isLoading ? 'Giris yapiliyor...' : 'Giris Yap';
+        }
+
+        // ---------------------------------------------------
+        // Giris formu
+        // ---------------------------------------------------
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
+            setLoading(true);
+
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    if (error.message.includes('Invalid login credentials')) {
+                        showAlert('E-posta adresi veya sifre hatali.', 'error');
+                    } else {
+                        showAlert(`Hata: ${error.message}`, 'error');
+                    }
+                    return;
+                }
+
+                window.location.replace('index.html');
+            } catch (err) {
+                showAlert('Beklenmeyen bir hata olustu. Lutfen tekrar deneyin.', 'error');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // ---------------------------------------------------
+        // Sifre sifirlama
+        // ---------------------------------------------------
+        document.getElementById('btn-show-reset').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('btn-show-reset').classList.add('hidden');
+            document.getElementById('reset-form').classList.remove('hidden');
+            hideAlert();
+        });
+
+        document.getElementById('btn-back-to-login').addEventListener('click', () => {
+            document.getElementById('reset-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('btn-show-reset').classList.remove('hidden');
+            hideAlert();
+        });
+
+        document.getElementById('reset-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
+
+            const email = document.getElementById('reset-email').value.trim();
+            const submitBtn = e.target.querySelector('[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Gonderiliyor...';
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/index.html`,
+                });
+
+                if (error) {
+                    showAlert(`Hata: ${error.message}`, 'error');
+                } else {
+                    showAlert('Sifre sifirlama baglantisi e-posta adresinize gonderildi.', 'success');
+                    e.target.reset();
+                }
+            } catch (err) {
+                showAlert('Beklenmeyen bir hata olustu.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sifirlama Baglantisi Gonder';
+            }
+        });
+    </script>
+</body>
+</html>
