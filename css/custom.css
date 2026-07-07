@@ -100,6 +100,67 @@ tbody tr {
 .cal-status-gecikti    { border-left: 4px solid #dc2626; }
 .cal-status-planlandi  { border-left: 4px solid #2563eb; }
 
+/* Modern Durum/Oncelik Rozetleri */
+.badge-status {
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.badge-urgent {
+    background-color: #fff1f2;
+    color: #be123c;
+    border-color: #fecdd3;
+}
+
+.badge-high {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+.badge-medium {
+    background-color: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+.badge-pending {
+    background-color: #fff7ed;
+    color: #c2410c;
+    border-color: #fed7aa;
+}
+
+.badge-planned {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.badge-open {
+    background-color: #f0f9ff;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+
+.badge-completed {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
+}
+
+.badge-default {
+    background-color: #f8fafc;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
 /* Baskı stilleri */
 @media print {
     #sidebar,
@@ -116,4 +177,178 @@ tbody tr {
     #content-area {
         padding: 0 !important;
     }
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+
+/* --- Gövde & Genel --- */
+.dark-mode body {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+/* --- Üst Navbar --- */
+.dark-mode nav.fixed {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+.dark-mode nav .text-indigo-700 { color: #818cf8; }
+.dark-mode nav .text-gray-700,
+.dark-mode nav .text-gray-500 { color: #cbd5e1; }
+.dark-mode nav button.p-2:hover,
+.dark-mode nav .dark-toggle-btn:hover {
+    background-color: #334155;
+}
+
+/* --- Kullanıcı Dropdown --- */
+.dark-mode #user-dropdown {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+.dark-mode #user-dropdown .text-gray-800 { color: #e2e8f0; }
+.dark-mode #user-dropdown .text-gray-500 { color: #94a3b8; }
+.dark-mode #user-dropdown .text-gray-700 { color: #cbd5e1; }
+.dark-mode #user-dropdown li a:hover { background-color: #334155; }
+.dark-mode #user-dropdown .border-gray-100 { border-color: #334155; }
+
+/* --- Sidebar --- */
+.dark-mode #sidebar {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+.dark-mode .sidebar-item { color: #94a3b8; }
+.dark-mode .sidebar-item:hover {
+    background-color: #334155;
+    color: #e2e8f0;
+}
+.dark-mode .sidebar-item-active {
+    background-color: #312e81;
+    color: #a5b4fc;
+}
+.dark-mode .sidebar-item-active svg { color: #a5b4fc; }
+.dark-mode .sidebar-item svg { color: #64748b; }
+.dark-mode .sidebar-item:hover svg { color: #94a3b8; }
+
+/* --- Ana İçerik Alanı --- */
+.dark-mode #main-wrapper {
+    background-color: #0f172a;
+}
+
+/* --- Genel Metin Renkleri (Tailwind override) --- */
+.dark-mode .text-gray-800 { color: #e2e8f0; }
+.dark-mode .text-gray-700 { color: #cbd5e1; }
+.dark-mode .text-gray-600 { color: #94a3b8; }
+.dark-mode .text-gray-500 { color: #64748b; }
+.dark-mode .text-gray-400 { color: #475569; }
+
+/* --- Kartlar, Paneller, Kutular --- */
+.dark-mode .bg-white {
+    background-color: #1e293b;
+}
+.dark-mode .bg-slate-50,
+.dark-mode .bg-gray-50 {
+    background-color: #0f172a;
+}
+.dark-mode .bg-slate-50\/50,
+.dark-mode .bg-gray-50\/50 {
+    background-color: rgba(15, 23, 42, 0.5);
+}
+
+/* --- Kenarlıklar --- */
+.dark-mode .border-gray-200,
+.dark-mode .border-gray-100 {
+    border-color: #334155;
+}
+.dark-mode .border-slate-100,
+.dark-mode .border-slate-200 {
+    border-color: #334155;
+}
+
+/* --- Gölgeler --- */
+.dark-mode .shadow-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Hover Durumları --- */
+.dark-mode .hover\:bg-slate-50:hover {
+    background-color: #334155;
+}
+.dark-mode .hover\:bg-gray-50:hover,
+.dark-mode .hover\:bg-gray-100:hover {
+    background-color: #334155;
+}
+
+/* --- Stat Kartları (Dashboard) ikon arka planları --- */
+.dark-mode .bg-red-50 { background-color: rgba(239, 68, 68, 0.12); }
+.dark-mode .bg-orange-50 { background-color: rgba(249, 115, 22, 0.12); }
+.dark-mode .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.12); }
+.dark-mode .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.18); }
+
+/* --- Rozet / Badge düzeltmeleri --- */
+.dark-mode .bg-slate-100 { background-color: #334155; }
+.dark-mode .text-slate-600 { color: #94a3b8; }
+
+/* --- Tablo thead --- */
+.dark-mode thead {
+    background-color: #0f172a;
+}
+.dark-mode thead th { color: #64748b; }
+.dark-mode tbody tr { border-color: #1e293b; }
+.dark-mode .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b;
+}
+
+/* --- Input / Select / Textarea --- */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+    color: #475569;
+}
+
+/* --- Modal --- */
+.dark-mode .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+.dark-mode .modal-overlay > div {
+    background-color: #1e293b;
+}
+
+/* --- Filtre Butonları --- */
+.dark-mode .filter-btn {
+    color: #94a3b8;
+    border-color: #334155;
+}
+.dark-mode .filter-btn:hover {
+    background-color: #334155;
+}
+
+/* --- Scrollbar (koyu mod) --- */
+.dark-mode ::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+.dark-mode ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* --- Dashed boş state kutuları --- */
+.dark-mode .border-dashed {
+    border-color: #334155;
+}
+
+/* --- Toast bildirimleri --- */
+.dark-mode #toast-container > div {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
 }

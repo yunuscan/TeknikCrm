@@ -22,7 +22,7 @@ export async function renderReports({ profile }) {
         supabase.from('customers').select('*', { count: 'exact', head: true }),
         supabase.from('customers').select('*', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('technical_supports').select('*', { count: 'exact', head: true }).in('status', ['Acik', 'Devam Ediyor']),
-        supabase.from('technical_supports').select('*', { count: 'exact', head: true }).in('status', ['Cozuldu', 'Kapali']),
+        supabase.from('technical_supports').select('*', { count: 'exact', head: true }).in('status', ['Çözüldü', 'Kapali']),
         supabase.from('tasks').select('*', { count: 'exact', head: true }),
         supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'Gecikti'),
         supabase.from('licenses').select('*', { count: 'exact', head: true }).lt('maintenance_end', today),
@@ -84,14 +84,14 @@ function buildHTML(s) {
                 <p class="text-sm text-gray-500 mt-0.5">Sistem geneli ozet istatistikleri</p>
             </div>
 
-            <!-- Ozet Kartlar -->
+            <!-- Özet Kartlar -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                ${reportCard('Toplam Musteri',        s.cTotal,       'text-gray-800')}
-                ${reportCard('Aktif Musteri',         s.cActive,      'text-indigo-600')}
+                ${reportCard('Toplam Müşteri',        s.cTotal,       'text-gray-800')}
+                ${reportCard('Aktif Müşteri',         s.cActive,      'text-indigo-600')}
                 ${reportCard('Acik Destek',           s.tsOpen,       'text-orange-500')}
                 ${reportCard('Cozulen Destek',        s.tsClosed,     'text-green-600')}
-                ${reportCard('Toplam Gorev',          s.tasksAll,     'text-gray-800')}
-                ${reportCard('Geciken Gorev',         s.tasksOverdue, 'text-red-600')}
+                ${reportCard('Toplam Görev',          s.tasksAll,     'text-gray-800')}
+                ${reportCard('Geciken Görev',         s.tasksOverdue, 'text-red-600')}
                 ${reportCard('Bakimi Gecmis Lisans',  s.licExpired,   'text-red-600')}
                 ${reportCard('Bu Ay Ziyaret',         s.visitsMonth,  'text-blue-600')}
             </div>

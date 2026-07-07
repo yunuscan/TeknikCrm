@@ -16,7 +16,7 @@ let searchTerm   = '';
 // ---------------------------------------------------
 
 export async function renderCustomers({ profile }) {
-    setPageTitle('Musteriler');
+    setPageTitle('Müşteriler');
 
     const { data, error } = await supabase
         .from('customers')
@@ -24,7 +24,7 @@ export async function renderCustomers({ profile }) {
         .order('company_name', { ascending: true, nullsFirst: false });
 
     if (error) {
-        showToast('Musteriler yuklenemedi: ' + error.message, 'error');
+        showToast('Müşteriler yuklenemedi: ' + error.message, 'error');
         return;
     }
 
@@ -39,21 +39,21 @@ export async function renderCustomers({ profile }) {
 function renderList(profile) {
     const filtered = filterCustomers(allCustomers, searchTerm);
 
-    const canWrite = ['Yonetici', 'Satis Personeli', 'Teknik Servis'].includes(profile?.role);
-    const canDelete = profile?.role === 'Yonetici';
+    const canWrite = ['Yönetici', 'Satış Personeli', 'Teknik Servis'].includes(profile?.role);
+    const canDelete = profile?.role === 'Yönetici';
 
     const rows = filtered.length
         ? filtered.map(c => buildRow(c, canWrite, canDelete)).join('')
-        : `<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-gray-400">Kayit bulunamadi.</td></tr>`;
+        : `<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-gray-400">Kayıt bulunamadi.</td></tr>`;
 
     setContent(`
         <div class="max-w-7xl mx-auto">
 
-            <!-- Baslik satiri -->
+            <!-- Başlık satiri -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Musteriler</h1>
-                    <p class="text-sm text-gray-500 mt-0.5">${allCustomers.length} musteri kaydi</p>
+                    <h1 class="text-2xl font-bold text-gray-800">Müşteriler</h1>
+                    <p class="text-sm text-gray-500 mt-0.5">${allCustomers.length} müşteri kaydi</p>
                 </div>
                 ${canWrite ? `
                 <button
@@ -63,7 +63,7 @@ function renderList(profile) {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Yeni Musteri
+                    Yeni Müşteri
                 </button>` : ''}
             </div>
 
@@ -89,8 +89,8 @@ function renderList(profile) {
                                 <th class="px-5 py-3 font-medium">Il / Ilce</th>
                                 <th class="px-5 py-3 font-medium">Yetkili</th>
                                 <th class="px-5 py-3 font-medium">Durum</th>
-                                <th class="px-5 py-3 font-medium">Kayit Tarihi</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">Islemler</th>` : ''}
+                                <th class="px-5 py-3 font-medium">Kayıt Tarihi</th>
+                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -102,7 +102,7 @@ function renderList(profile) {
 
         </div>
 
-        ${buildModal('customer-modal', 'Yeni Musteri', buildForm())}
+        ${buildModal('customer-modal', 'Yeni Müşteri', buildForm())}
     `);
 
     bindEvents(profile);
@@ -239,7 +239,7 @@ function buildForm(c = {}) {
             <div class="sm:col-span-2 flex items-center gap-2">
                 <input type="checkbox" id="is-active-check" name="is_active" ${c.is_active !== false ? 'checked' : ''}
                     class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                <label for="is-active-check" class="text-sm font-medium text-gray-700">Aktif musteri</label>
+                <label for="is-active-check" class="text-sm font-medium text-gray-700">Aktif müşteri</label>
             </div>
 
         </div>
@@ -273,7 +273,7 @@ function buildModal(id, title, bodyHtml) {
                     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
                         <button type="button" data-close-modal="${id}"
                             class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                            Iptal
+                            İptal
                         </button>
                         <button type="submit"
                             class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors disabled:opacity-60">
@@ -297,9 +297,9 @@ function bindEvents(profile) {
         renderList(profile);
     });
 
-    // Yeni musteri butonu
+    // Yeni müşteri butonu
     document.getElementById('btn-open-create')?.addEventListener('click', () => {
-        document.getElementById('customer-modal-title').textContent = 'Yeni Musteri';
+        document.getElementById('customer-modal-title').textContent = 'Yeni Müşteri';
         document.getElementById('customer-modal-body').innerHTML    = buildForm();
         document.getElementById('customer-modal-form').dataset.editId = '';
         openModal('customer-modal');
@@ -321,7 +321,7 @@ function bindEvents(profile) {
         if (action === 'edit') {
             const customer = allCustomers.find(c => c.id === id);
             if (!customer) return;
-            document.getElementById('customer-modal-title').textContent = 'Musteri Duzenle';
+            document.getElementById('customer-modal-title').textContent = 'Müşteri Duzenle';
             document.getElementById('customer-modal-body').innerHTML    = buildForm(customer);
             document.getElementById('customer-modal-form').dataset.editId = id;
             openModal('customer-modal');
@@ -329,7 +329,7 @@ function bindEvents(profile) {
 
         if (action === 'delete') {
             const name = btn.dataset.name;
-            if (!confirm(`"${name}" adli musteri silinecek. Emin misiniz?`)) return;
+            if (!confirm(`"${name}" adli müşteri silinecek. Emin misiniz?`)) return;
             await deleteCustomer(id, profile);
         }
     });
@@ -342,7 +342,7 @@ function bindEvents(profile) {
 }
 
 // ---------------------------------------------------
-// CRUD - Kaydet (Olustur / Guncelle)
+// CRUD - Kaydet (Olustur / Güncelle)
 // ---------------------------------------------------
 
 async function saveCustomer(form, profile) {
@@ -386,7 +386,7 @@ async function saveCustomer(form, profile) {
 
         if (error) throw error;
 
-        showToast(editId ? 'Musteri guncellendi.' : 'Musteri olusturuldu.', 'success');
+        showToast(editId ? 'Müşteri güncellendi.' : 'Müşteri olusturuldu.', 'success');
         closeModal('customer-modal');
         await renderCustomers({ profile });
     } catch (err) {
@@ -407,7 +407,7 @@ async function deleteCustomer(id, profile) {
         showToast(translateError(error), 'error');
         return;
     }
-    showToast('Musteri silindi.', 'success');
+    showToast('Müşteri silindi.', 'success');
     await renderCustomers({ profile });
 }
 

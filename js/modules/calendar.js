@@ -101,7 +101,7 @@ function buildHTML(eventMap, startStr, endStr) {
                 <!-- Renk aciklamasi -->
                 <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
                     <span class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-sm border-l-4 border-green-500 bg-green-50 inline-block"></span>Tamamlandi
+                        <span class="w-3 h-3 rounded-sm border-l-4 border-green-500 bg-green-50 inline-block"></span>Tamamlandı
                     </span>
                     <span class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded-sm border-l-4 border-yellow-400 bg-yellow-50 inline-block"></span>Bekliyor
@@ -177,7 +177,7 @@ function buildTaskCard(t) {
     const assignee = t.assigned?.full_name ? escHtml(t.assigned.full_name) : null;
 
     const statusClass = {
-        'Tamamlandi': 'cal-status-tamamlandi bg-green-50',
+        'Tamamlandı': 'cal-status-tamamlandi bg-green-50',
         'Bekliyor':   'cal-status-bekliyor bg-yellow-50',
         'Gecikti':    'cal-status-gecikti bg-red-50',
     }[t.status] || 'border-l-4 border-gray-300 bg-gray-50';
@@ -186,9 +186,9 @@ function buildTaskCard(t) {
         <div class="${statusClass} rounded-lg px-4 py-3 flex items-start gap-3">
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs font-bold uppercase tracking-wide text-gray-400">Gorev</span>
+                    <span class="text-xs font-bold uppercase tracking-wide text-gray-400">Görev</span>
                     ${statusBadge(t.status)}
-                    ${t.priority === 'Yuksek' ? `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700">Yuksek Oncelik</span>` : ''}
+                    ${t.priority === 'Yuksek' ? `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700">Yuksek Öncelik</span>` : ''}
                 </div>
                 <p class="font-medium text-gray-800 mt-1 text-sm">${escHtml(t.title)}</p>
                 <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
@@ -206,7 +206,7 @@ function buildVisitCard(v) {
         : null;
     const assignee = v.assigned?.full_name ? escHtml(v.assigned.full_name) : null;
 
-    const statusClass = v.status === 'Tamamlandi'
+    const statusClass = v.status === 'Tamamlandı'
         ? 'cal-status-tamamlandi bg-green-50'
         : 'cal-status-planlandi bg-sky-50';
 

@@ -68,7 +68,7 @@ function buildHTML(profile) {
                     <div class="pt-2">
                         <button type="submit"
                             class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors disabled:opacity-60">
-                            Profili Guncelle
+                            Profili Güncelle
                         </button>
                     </div>
 
@@ -136,7 +136,7 @@ function bindEvents(profile) {
         if (!payload.full_name) {
             showToast('Ad soyad zorunludur.', 'error');
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Profili Guncelle';
+            submitBtn.textContent = 'Profili Güncelle';
             return;
         }
 
@@ -146,14 +146,14 @@ function bindEvents(profile) {
             .eq('id', profile.id);
 
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Profili Guncelle';
+        submitBtn.textContent = 'Profili Güncelle';
 
         if (error) {
             showToast(translateError(error), 'error');
             return;
         }
 
-        showToast('Profil guncellendi.', 'success');
+        showToast('Profil güncellendi.', 'success');
         // Profil nesnesini guncelle (global state guncellemez, sayfa yenilenmeli)
         profile.full_name = payload.full_name;
         profile.phone     = payload.phone;

@@ -1,5 +1,5 @@
 // ============================================================
-// utils.js - Tum moduller tarafindan kullanilan yardimci
+// utils.js - Tüm moduller tarafindan kullanilan yardimci
 // fonksiyonlar. Dairesel bagimliliktan kacınmak icin app.js
 // disinda tutulur.
 // ============================================================
@@ -108,27 +108,28 @@ export function isPast(dateStr) {
 
 export function statusBadge(status) {
     const map = {
-        'Bekliyor':     'bg-yellow-100 text-yellow-800',
-        'Tamamlandi':   'bg-green-100 text-green-800',
-        'Gecikti':      'bg-red-100 text-red-800',
-        'Acik':         'bg-blue-100 text-blue-800',
-        'Devam Ediyor': 'bg-orange-100 text-orange-800',
-        'Cozuldu':      'bg-green-100 text-green-800',
-        'Kapali':       'bg-gray-100 text-gray-600',
-        'Planlandi':    'bg-sky-100 text-sky-800',
+        'Bekliyor':     'badge-pending',
+        'Tamamlandı':   'badge-completed',
+        'Gecikti':      'badge-urgent',
+        'Acik':         'badge-open',
+        'Devam Ediyor': 'badge-medium',
+        'Çözüldü':      'badge-completed',
+        'Kapali':       'badge-default',
+        'Planlandı':    'badge-planned',
     };
-    const cls = map[status] || 'bg-gray-100 text-gray-600';
-    return `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${cls}">${escHtml(status)}</span>`;
+    const cls = map[status] || 'badge-default';
+    return `<span class="badge-status ${cls}">${escHtml(status)}</span>`;
 }
 
 export function priorityBadge(priority) {
     const map = {
-        'Yuksek': 'bg-red-100 text-red-800',
-        'Orta':   'bg-yellow-100 text-yellow-800',
-        'Dusuk':  'bg-slate-100 text-slate-700',
+        'Acil':   'badge-urgent',
+        'Yuksek': 'badge-high',
+        'Orta':   'badge-medium',
+        'Dusuk':  'badge-default',
     };
-    const cls = map[priority] || 'bg-gray-100 text-gray-700';
-    return `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${cls}">${escHtml(priority)}</span>`;
+    const cls = map[priority] || 'badge-default';
+    return `<span class="badge-status ${cls}">${escHtml(priority)}</span>`;
 }
 
 // ---------------------------------------------------
@@ -179,7 +180,7 @@ export function setPageTitle(title) {
 export function translateError(err) {
     if (!err) return 'Bilinmeyen hata.';
     const msg = err.message || String(err);
-    if (msg.includes('violates foreign key')) return 'Bu kayit baska kayitlarla iliskili oldugundan silinemez.';
+    if (msg.includes('violates foreign key')) return 'Bu kayıt baska kayitlarla iliskili oldugundan silinemez.';
     if (msg.includes('duplicate key')) return 'Bu deger zaten kullanilmaktadir.';
     if (msg.includes('violates row-level security')) return 'Bu islemi gerceklestirme yetkiniz yok.';
     if (msg.includes('not null')) return 'Zorunlu alanlar bos birakilamaz.';

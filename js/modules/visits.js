@@ -10,7 +10,7 @@ import { buildVisitDetailModal, showVisitDetail } from './details.js';
 // ---------------------------------------------------
 
 export async function renderVisits({ profile }) {
-    setPageTitle('Ziyaret Plani');
+    setPageTitle('Ziyaret Planı');
 
     const [visitsRes, customersRes, staffRes] = await Promise.all([
         supabase
@@ -30,8 +30,8 @@ export async function renderVisits({ profile }) {
     const customers = customersRes.data || [];
     const staff     = staffRes.data     || [];
 
-    const canWrite  = ['Yonetici', 'Teknik Servis', 'Satis Personeli'].includes(profile?.role);
-    const canDelete = profile?.role === 'Yonetici';
+    const canWrite  = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
+    const canDelete = profile?.role === 'Yönetici';
 
     setContent(buildHTML(visits, customers, staff, canWrite, canDelete, profile));
     bindEvents(profile, customers, staff, visits);
@@ -56,7 +56,7 @@ function buildHTML(visits, customers, staff, canWrite, canDelete, profile) {
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Ziyaret Plani</h1>
+                    <h1 class="text-2xl font-bold text-gray-800">Ziyaret Planı</h1>
                     <p class="text-sm text-gray-500 mt-0.5">${visits.length} ziyaret kaydi</p>
                 </div>
                 ${canWrite ? `
@@ -69,9 +69,9 @@ function buildHTML(visits, customers, staff, canWrite, canDelete, profile) {
 
             <!-- Durum filtresi -->
             <div class="flex gap-2 mb-4">
-                <button data-filter="" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 text-gray-700 bg-gray-100">Tumü</button>
-                <button data-filter="Planlandi" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-sky-200 text-sky-700 hover:bg-sky-50">Planlandi</button>
-                <button data-filter="Tamamlandi" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Tamamlandi</button>
+                <button data-filter="" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 text-gray-700 bg-gray-100">Tümü</button>
+                <button data-filter="Planlandı" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-sky-200 text-sky-700 hover:bg-sky-50">Planlandı</button>
+                <button data-filter="Tamamlandı" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Tamamlandı</button>
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -79,12 +79,12 @@ function buildHTML(visits, customers, staff, canWrite, canDelete, profile) {
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-5 py-3 font-medium">Musteri</th>
+                                <th class="px-5 py-3 font-medium">Müşteri</th>
                                 <th class="px-5 py-3 font-medium">Tarih / Saat</th>
                                 <th class="px-5 py-3 font-medium">Amac</th>
                                 <th class="px-5 py-3 font-medium">Atanan</th>
                                 <th class="px-5 py-3 font-medium">Durum</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">Islemler</th>` : ''}
+                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
                             </tr>
                         </thead>
                         <tbody id="visit-table-body" class="divide-y divide-gray-50">
@@ -110,7 +110,7 @@ function buildRow(v, today, canWrite, canDelete) {
         ? escHtml(v.customers.company_name || `${v.customers.first_name} ${v.customers.last_name}`)
         : '-';
     const assignee  = v.assigned?.full_name ? escHtml(v.assigned.full_name) : '-';
-    const isPast    = v.visit_date && v.visit_date < today && v.status === 'Planlandi';
+    const isPast    = v.visit_date && v.visit_date < today && v.status === 'Planlandı';
     const timeStr   = v.visit_time ? v.visit_time.slice(0, 5) : '';
 
     const actions = canWrite ? `
@@ -155,10 +155,10 @@ function buildModal(custOptions, staffOptions) {
                     <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Musteri <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Müşteri <span class="text-red-500">*</span></label>
                             <select name="customer_id" required id="visit-customer-select"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">-- Musteri secin --</option>
+                                <option value="">-- Müşteri secin --</option>
                                 ${custOptions}
                             </select>
                         </div>
@@ -194,8 +194,8 @@ function buildModal(custOptions, staffOptions) {
                             <label class="block text-sm font-medium text-gray-700 mb-1">Durum</label>
                             <select name="status"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="Planlandi">Planlandi</option>
-                                <option value="Tamamlandi">Tamamlandi</option>
+                                <option value="Planlandı">Planlandı</option>
+                                <option value="Tamamlandı">Tamamlandı</option>
                             </select>
                         </div>
 
@@ -222,7 +222,7 @@ function buildModal(custOptions, staffOptions) {
                     </div>
                     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
                         <button type="button" data-close-modal="visit-modal"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Iptal</button>
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">İptal</button>
                         <button type="submit"
                             class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-60">Kaydet</button>
                     </div>
@@ -248,7 +248,7 @@ function bindEvents(profile, customers, staff, visits) {
         btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
     });
 
-    // Musteri secince adresini otomatik doldur
+    // Müşteri secince adresini otomatik doldur
     document.getElementById('visit-customer-select')?.addEventListener('change', e => {
         const cId      = e.target.value;
         const customer = customers.find(c => c.id === cId);
@@ -322,7 +322,7 @@ function fillVisitForm(form, v) {
     form.querySelector('[name="visit_time"]').value  = v.visit_time  || '';
     form.querySelector('[name="address"]').value     = v.address     || '';
     form.querySelector('[name="assigned_to"]').value = v.assigned_to || '';
-    form.querySelector('[name="status"]').value      = v.status      || 'Planlandi';
+    form.querySelector('[name="status"]').value      = v.status      || 'Planlandı';
     form.querySelector('[name="purpose"]').value     = v.purpose     || '';
     form.querySelector('[name="notes"]').value       = v.notes       || '';
     form.querySelector('[name="work_done"]').value   = v.work_done   || '';
@@ -347,7 +347,7 @@ async function saveVisit(form, profile) {
         visit_time:   fd.get('visit_time')  || null,
         address:      fd.get('address')?.trim()  || null,
         assigned_to:  fd.get('assigned_to') || null,
-        status:       fd.get('status')      || 'Planlandi',
+        status:       fd.get('status')      || 'Planlandı',
         purpose:      fd.get('purpose')?.trim()  || null,
         notes:        fd.get('notes')?.trim()    || null,
         work_done:    fd.get('work_done')?.trim() || null,
@@ -355,7 +355,7 @@ async function saveVisit(form, profile) {
     };
 
     if (!payload.customer_id || !payload.visit_date) {
-        showToast('Musteri ve ziyaret tarihi zorunludur.', 'error');
+        showToast('Müşteri ve ziyaret tarihi zorunludur.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Kaydet';
         return;
@@ -370,7 +370,7 @@ async function saveVisit(form, profile) {
             ({ error } = await supabase.from('visits').insert(payload));
         }
         if (error) throw error;
-        showToast(editId ? 'Ziyaret guncellendi.' : 'Ziyaret olusturuldu.', 'success');
+        showToast(editId ? 'Ziyaret güncellendi.' : 'Ziyaret olusturuldu.', 'success');
         closeModal('visit-modal');
         await renderVisits({ profile });
     } catch (err) {

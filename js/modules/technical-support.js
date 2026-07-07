@@ -31,7 +31,7 @@ export async function renderTechnicalSupport({ profile }) {
     const customers = customersRes.data || [];
     const staff     = staffRes.data     || [];
 
-    const canWrite = ['Yonetici', 'Teknik Servis'].includes(profile?.role);
+    const canWrite = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
 
     setContent(buildHTML(supports, customers, staff, canWrite, profile));
     bindEvents(profile, customers, staff, supports);
@@ -52,11 +52,11 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
     return `
         <div class="max-w-7xl mx-auto">
 
-            <!-- Baslik + Yeni Destek butonu -->
+            <!-- Başlık + Yeni Destek butonu -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-800">Teknik Destek</h1>
-                    <p class="text-sm text-gray-500 mt-0.5">${supports.length} kayit listeleniyor</p>
+                    <p class="text-sm text-gray-500 mt-0.5">${supports.length} kayıt listeleniyor</p>
                 </div>
                 ${canWrite ? `
                 <button
@@ -72,10 +72,10 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
 
             <!-- Durum filtresi -->
             <div class="flex flex-wrap gap-2 mb-4">
-                <button data-filter-status="" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 bg-gray-100">Tumü</button>
+                <button data-filter-status="" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 bg-gray-100">Tümü</button>
                 <button data-filter-status="Acik" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50">Acik</button>
                 <button data-filter-status="Devam Ediyor" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-orange-200 text-orange-700 hover:bg-orange-50">Devam Ediyor</button>
-                <button data-filter-status="Cozuldu" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Cozuldu</button>
+                <button data-filter-status="Çözüldü" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Çözüldü</button>
                 <button data-filter-status="Kapali" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50">Kapali</button>
             </div>
 
@@ -86,13 +86,13 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
                         <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                             <tr>
                                 <th class="px-5 py-3 font-medium">No</th>
-                                <th class="px-5 py-3 font-medium">Musteri</th>
+                                <th class="px-5 py-3 font-medium">Müşteri</th>
                                 <th class="px-5 py-3 font-medium">Konu</th>
                                 <th class="px-5 py-3 font-medium">Arayan</th>
                                 <th class="px-5 py-3 font-medium">Atanan</th>
-                                <th class="px-5 py-3 font-medium">Baslangic</th>
+                                <th class="px-5 py-3 font-medium">Başlangıç</th>
                                 <th class="px-5 py-3 font-medium">Durum</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">Islemler</th>` : ''}
+                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
                             </tr>
                         </thead>
                         <tbody id="support-table-body" class="divide-y divide-gray-50">
@@ -164,10 +164,10 @@ function buildNewSupportModal(custOptions, staffOptions) {
                     <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Musteri <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Müşteri <span class="text-red-500">*</span></label>
                             <select name="customer_id" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">-- Musteri secin --</option>
+                                <option value="">-- Müşteri secin --</option>
                                 ${custOptions}
                             </select>
                         </div>
@@ -191,7 +191,7 @@ function buildNewSupportModal(custOptions, staffOptions) {
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Aciklama</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
                             <textarea name="description" rows="3"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
                         </div>
@@ -211,13 +211,13 @@ function buildNewSupportModal(custOptions, staffOptions) {
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="Acik">Acik</option>
                                 <option value="Devam Ediyor">Devam Ediyor</option>
-                                <option value="Cozuldu">Cozuldu</option>
+                                <option value="Çözüldü">Çözüldü</option>
                                 <option value="Kapali">Kapali</option>
                             </select>
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cozum Detayi</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Çözüm Detayi</label>
                             <textarea name="resolution" rows="2"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
                         </div>
@@ -231,7 +231,7 @@ function buildNewSupportModal(custOptions, staffOptions) {
                     </div>
                     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
                         <button type="button" data-close-modal="support-modal"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Iptal</button>
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">İptal</button>
                         <button type="submit"
                             class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-60">Kaydet</button>
                     </div>
@@ -285,7 +285,7 @@ function bindEvents(profile, customers, staff, supports) {
             }
 
             if (action === 'edit') {
-                document.getElementById('support-modal-title').textContent = 'Destek Guncelle';
+                document.getElementById('support-modal-title').textContent = 'Destek Güncelle';
                 fillSupportForm(document.getElementById('support-modal-form'), support);
                 document.getElementById('support-modal-form').dataset.editId = id;
                 openModal('support-modal');
@@ -353,14 +353,14 @@ async function saveSupport(form, profile) {
     };
 
     if (!payload.customer_id || !payload.caller_name || !payload.subject) {
-        showToast('Musteri, arayan kisi ve konu zorunludur.', 'error');
+        showToast('Müşteri, arayan kisi ve konu zorunludur.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Kaydet';
         return;
     }
 
-    // Durum Cozuldu/Kapali ise bitis zamanini ayarla
-    if (['Cozuldu', 'Kapali'].includes(payload.status) && !editId) {
+    // Durum Çözüldü/Kapali ise bitis zamanini ayarla
+    if (['Çözüldü', 'Kapali'].includes(payload.status) && !editId) {
         payload.end_time = new Date().toISOString();
     }
 
@@ -373,7 +373,7 @@ async function saveSupport(form, profile) {
             ({ error } = await supabase.from('technical_supports').insert(payload));
         }
         if (error) throw error;
-        showToast(editId ? 'Destek guncellendi.' : 'Destek kaydi olusturuldu.', 'success');
+        showToast(editId ? 'Destek güncellendi.' : 'Destek kaydi olusturuldu.', 'success');
         closeModal('support-modal');
         await renderTechnicalSupport({ profile });
     } catch (err) {

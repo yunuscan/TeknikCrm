@@ -32,12 +32,12 @@ export async function renderLicenses({ profile }) {
     const warnDate  = new Date(); warnDate.setDate(warnDate.getDate() + 30);
     const warnStr   = warnDate.toISOString().split('T')[0];
 
-    const canWrite  = ['Yonetici', 'Satis Personeli'].includes(profile?.role);
-    const canDelete = profile?.role === 'Yonetici';
+    const canWrite  = ['Yönetici', 'Satış Personeli'].includes(profile?.role);
+    const canDelete = profile?.role === 'Yönetici';
 
     const rows = licenses.length
         ? licenses.map(l => buildRow(l, today, warnStr, canWrite, canDelete)).join('')
-        : `<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-gray-400">Kayit bulunamadi.</td></tr>`;
+        : `<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-gray-400">Kayıt bulunamadi.</td></tr>`;
 
     setContent(`
         <div class="max-w-7xl mx-auto">
@@ -67,12 +67,12 @@ export async function renderLicenses({ profile }) {
                         <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                             <tr>
                                 <th class="px-5 py-3 font-medium">Lisans No</th>
-                                <th class="px-5 py-3 font-medium">Musteri</th>
+                                <th class="px-5 py-3 font-medium">Müşteri</th>
                                 <th class="px-5 py-3 font-medium">Program</th>
                                 <th class="px-5 py-3 font-medium">Versiyon</th>
-                                <th class="px-5 py-3 font-medium">Satis Tarihi</th>
-                                <th class="px-5 py-3 font-medium">Bakim Bitis</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">Islemler</th>` : ''}
+                                <th class="px-5 py-3 font-medium">Satış Tarihi</th>
+                                <th class="px-5 py-3 font-medium">Bakim Bitiş</th>
+                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -149,10 +149,10 @@ function buildModal(customers) {
                     <div id="license-modal-body" class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Musteri <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Müşteri <span class="text-red-500">*</span></label>
                             <select name="customer_id" required
                                 class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">-- Musteri secin --</option>
+                                <option value="">-- Müşteri secin --</option>
                                 ${custOptions}
                             </select>
                         </div>
@@ -176,19 +176,19 @@ function buildModal(customers) {
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Satis Tarihi</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Satış Tarihi</label>
                             <input type="date" name="sale_date"
                                 class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Bakim Baslangic</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bakim Başlangıç</label>
                             <input type="date" name="maintenance_start"
                                 class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Bakim Bitis</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bakim Bitiş</label>
                             <input type="date" name="maintenance_end"
                                 class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
@@ -196,7 +196,7 @@ function buildModal(customers) {
                     </div>
                     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
                         <button type="button" data-close-modal="license-modal"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Iptal</button>
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">İptal</button>
                         <button type="submit"
                             class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-60">Kaydet</button>
                     </div>
@@ -294,7 +294,7 @@ async function saveLicense(form, profile) {
     };
 
     if (!payload.customer_id || !payload.license_number || !payload.program_name) {
-        showToast('Musteri, lisans no ve program adi zorunludur.', 'error');
+        showToast('Müşteri, lisans no ve program adi zorunludur.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Kaydet';
         return;
@@ -309,7 +309,7 @@ async function saveLicense(form, profile) {
             ({ error } = await supabase.from('licenses').insert(payload));
         }
         if (error) throw error;
-        showToast(editId ? 'Lisans guncellendi.' : 'Lisans olusturuldu.', 'success');
+        showToast(editId ? 'Lisans güncellendi.' : 'Lisans olusturuldu.', 'success');
         closeModal('license-modal');
         await renderLicenses({ profile });
     } catch (err) {

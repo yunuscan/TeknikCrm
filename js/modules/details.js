@@ -6,7 +6,7 @@ import {
 } from '../utils.js';
 
 // ---------------------------------------------------
-// Gorev Detay Modali
+// Görev Detay Modali
 // ---------------------------------------------------
 
 export function buildTaskDetailModal() {
@@ -15,7 +15,7 @@ export function buildTaskDetailModal() {
             role="dialog" aria-modal="true" aria-hidden="true">
             <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h3 class="text-lg font-semibold text-gray-800">Gorev Detayi</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Görev Detayi</h3>
                     <button data-close-modal="task-detail-modal" class="text-gray-400 hover:text-gray-600 p-1 rounded-md">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -41,7 +41,7 @@ export function showTaskDetail(t) {
     document.getElementById('task-detail-modal-body').innerHTML = `
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <span class="text-gray-400 text-xs">Musteri</span>
+                <span class="text-gray-400 text-xs">Müşteri</span>
                 <p class="font-medium text-gray-800">${escHtml(customer)}</p>
             </div>
             <div>
@@ -49,7 +49,7 @@ export function showTaskDetail(t) {
                 <p class="font-medium text-gray-800">${escHtml(assignee)}</p>
             </div>
             <div>
-                <span class="text-gray-400 text-xs">Oncelik</span>
+                <span class="text-gray-400 text-xs">Öncelik</span>
                 <div class="mt-1">${priorityBadge(t.priority)}</div>
             </div>
             <div>
@@ -57,21 +57,21 @@ export function showTaskDetail(t) {
                 <div class="mt-1">${statusBadge(t.status)}</div>
             </div>
             <div>
-                <span class="text-gray-400 text-xs">Baslangic Tarihi</span>
+                <span class="text-gray-400 text-xs">Başlangıç Tarihi</span>
                 <p class="font-medium text-gray-800">${formatDate(t.start_date)} ${t.start_time ? `(${t.start_time.slice(0, 5)})` : ''}</p>
             </div>
             <div>
-                <span class="text-gray-400 text-xs">Bitis Tarihi</span>
+                <span class="text-gray-400 text-xs">Bitiş Tarihi</span>
                 <p class="font-medium text-gray-800">${formatDate(t.end_date)} ${t.end_time ? `(${t.end_time.slice(0, 5)})` : ''}</p>
             </div>
         </div>
         <div class="pt-3 border-t border-gray-100">
-            <span class="text-gray-400 text-xs">Baslik</span>
+            <span class="text-gray-400 text-xs">Başlık</span>
             <p class="font-semibold text-gray-800 text-base mt-0.5">${escHtml(t.title)}</p>
         </div>
         ${t.description ? `
         <div class="pt-3 border-t border-gray-100">
-            <span class="text-gray-400 text-xs">Aciklama</span>
+            <span class="text-gray-400 text-xs">Açıklama</span>
             <p class="text-gray-700 mt-1 whitespace-pre-wrap">${escHtml(t.description)}</p>
         </div>` : ''}
     `;
@@ -115,7 +115,7 @@ export function showVisitDetail(v) {
     document.getElementById('visit-detail-modal-body').innerHTML = `
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <span class="text-gray-400 text-xs">Musteri</span>
+                <span class="text-gray-400 text-xs">Müşteri</span>
                 <p class="font-medium text-gray-800">${escHtml(customer)}</p>
             </div>
             <div>
@@ -207,24 +207,24 @@ export async function showSupportDetail(s, profile) {
         </div>
     `).join('') || '<p class="text-sm text-gray-400">Log girisi bulunmamaktadir.</p>';
 
-    const canLog = ['Yonetici', 'Teknik Servis'].includes(profile?.role);
+    const canLog = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
 
     document.getElementById('detail-modal-title').textContent = `Destek #${s.support_number}`;
     document.getElementById('detail-modal-body').innerHTML = `
         <div class="grid grid-cols-2 gap-3 text-sm">
-            <div><span class="text-gray-400 text-xs">Musteri</span><p class="font-medium text-gray-800">${escHtml(customer)}</p></div>
+            <div><span class="text-gray-400 text-xs">Müşteri</span><p class="font-medium text-gray-800">${escHtml(customer)}</p></div>
             <div><span class="text-gray-400 text-xs">Durum</span><div class="mt-0.5">${statusBadge(s.status)}</div></div>
             <div><span class="text-gray-400 text-xs">Arayan</span><p class="text-gray-700">${escHtml(s.caller_name)} ${s.caller_phone ? `<span class="text-gray-400">(${escHtml(s.caller_phone)})</span>` : ''}</p></div>
-            <div><span class="text-gray-400 text-xs">Baslangic</span><p class="text-gray-700">${formatDateTime(s.start_time)}</p></div>
+            <div><span class="text-gray-400 text-xs">Başlangıç</span><p class="text-gray-700">${formatDateTime(s.start_time)}</p></div>
         </div>
         <div>
             <p class="text-xs text-gray-400 mb-1">Konu</p>
             <p class="text-gray-800 font-medium">${escHtml(s.subject)}</p>
         </div>
-        ${s.description ? `<div><p class="text-xs text-gray-400 mb-1">Aciklama</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.description)}</p></div>` : ''}
-        ${s.resolution ? `<div><p class="text-xs text-gray-400 mb-1">Cozum</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.resolution)}</p></div>` : ''}
+        ${s.description ? `<div><p class="text-xs text-gray-400 mb-1">Açıklama</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.description)}</p></div>` : ''}
+        ${s.resolution ? `<div><p class="text-xs text-gray-400 mb-1">Çözüm</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.resolution)}</p></div>` : ''}
         <div>
-            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayitlari</p>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayıtları</p>
             <div class="space-y-3">${logItems}</div>
         </div>
         ${canLog ? `

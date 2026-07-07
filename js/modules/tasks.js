@@ -11,7 +11,7 @@ import { buildTaskDetailModal, showTaskDetail } from './details.js';
 // ---------------------------------------------------
 
 export async function renderTasks({ profile }) {
-    setPageTitle('Gorevler');
+    setPageTitle('Görevler');
 
     const [tasksRes, customersRes, staffRes] = await Promise.all([
         supabase
@@ -23,16 +23,24 @@ export async function renderTasks({ profile }) {
     ]);
 
     if (tasksRes.error) {
-        showToast('Gorevler yuklenemedi: ' + tasksRes.error.message, 'error');
+        showToast('Görevler yuklenemedi: ' + tasksRes.error.message, 'error');
         return;
     }
 
     const tasks     = tasksRes.data    || [];
+    
+    // GECICI MOCK VERILER
+    tasks.unshift(
+        { id: 'm1', title: 'Sunucu Bakımı ve Güncelleme', description: 'Ana veritabanı sunucusunun planlı bakımı yapılacak. İşletim sistemi güncellemeleri, güvenlik yamaları ve performans iyileştirmeleri uygulanacak.', priority: 'Acil', status: 'Gecikti', end_date: '2026-07-05', customers: { company_name: 'Mock Şirket A.Ş.' }, assigned: { full_name: 'Ali Yılmaz' } },
+        { id: 'm2', title: 'Yeni Modül Entegrasyonu', description: 'CRM sistemine talep edilen yeni raporlama modülü entegre edilecek. Veri kaynakları bağlanacak ve test edilecek.', priority: 'Orta', status: 'Bekliyor', end_date: '2026-07-15', customers: { company_name: 'Tech Çözümler Ltd.' }, assigned: { full_name: 'Ayşe Kaya' } },
+        { id: 'm3', title: 'Müşteri Toplantısı Hazırlığı', description: 'Aşırı uzun bir açıklama testi. Müşteri toplantısı için gerekli sunumlar ve veriler toparlanacak. Geçmiş döneme ait satış raporları çıkarılacak.', priority: 'Yüksek', status: 'Bekliyor', end_date: '2026-07-09', customers: { company_name: 'Global A.Ş.' }, assigned: { full_name: 'Can Can' } },
+        { id: 'm4', title: 'Ağ Altyapısı Yenilemesi', description: 'Ofis ağ altyapısının baştan aşağı yenilenmesi. Eski switchlerin gigabit switchlerle değiştirilmesi işlemi.', priority: 'Orta', status: 'Gecikti', end_date: '2026-06-25', customers: { company_name: 'Mock Şirket A.Ş.' }, assigned: { full_name: 'Ali Yılmaz' } }
+    );
     const customers = customersRes.data || [];
     const staff     = staffRes.data    || [];
 
-    const canWrite  = ['Yonetici', 'Teknik Servis', 'Satis Personeli'].includes(profile?.role);
-    const canDelete = profile?.role === 'Yonetici';
+    const canWrite  = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
+    const canDelete = profile?.role === 'Yönetici';
 
     setContent(buildHTML(tasks, customers, staff, canWrite, canDelete, profile));
     bindEvents(profile, customers, staff, tasks);
@@ -47,7 +55,7 @@ function buildHTML(tasks, customers, staff, canWrite, canDelete, profile) {
 
     const rows = tasks.length
         ? tasks.map(t => buildRow(t, today, canWrite, canDelete, profile)).join('')
-        : `<tr><td colspan="8" class="px-5 py-10 text-center text-sm text-gray-400">Gorev bulunamadi.</td></tr>`;
+        : `<tr><td colspan="8" class="px-5 py-10 text-center text-sm text-gray-400">Görev bulunamadi.</td></tr>`;
 
     const custOptions  = buildOptions(customers, 'id', c => c.company_name || `${c.first_name} ${c.last_name}`);
     const staffOptions = buildOptions(staff, 'id', s => s.full_name);
@@ -57,23 +65,23 @@ function buildHTML(tasks, customers, staff, canWrite, canDelete, profile) {
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Gorevler</h1>
-                    <p class="text-sm text-gray-500 mt-0.5">${tasks.length} gorev kaydi</p>
+                    <h1 class="text-2xl font-bold text-gray-800">Görevler</h1>
+                    <p class="text-sm text-gray-500 mt-0.5">${tasks.length} görev kaydi</p>
                 </div>
                 ${canWrite ? `
                 <button id="btn-open-create"
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    Yeni Gorev
+                    Yeni Görev
                 </button>` : ''}
             </div>
 
             <!-- Durum filtresi -->
             <div class="flex flex-wrap gap-2 mb-4">
-                <button data-filter="" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 text-gray-700 bg-gray-100">Tumü</button>
+                <button data-filter="" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 text-gray-700 bg-gray-100">Tümü</button>
                 <button data-filter="Bekliyor" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-yellow-200 text-yellow-700 hover:bg-yellow-50">Bekliyor</button>
                 <button data-filter="Gecikti" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-red-200 text-red-700 hover:bg-red-50">Gecikti</button>
-                <button data-filter="Tamamlandi" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Tamamlandi</button>
+                <button data-filter="Tamamlandı" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Tamamlandı</button>
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -81,13 +89,14 @@ function buildHTML(tasks, customers, staff, canWrite, canDelete, profile) {
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-5 py-3 font-medium">Baslik</th>
-                                <th class="px-5 py-3 font-medium">Musteri</th>
+                                <th class="px-5 py-3 font-medium">Başlık</th>
+                                <th class="px-5 py-3 font-medium">Açıklama</th>
+                                <th class="px-5 py-3 font-medium">Müşteri</th>
                                 <th class="px-5 py-3 font-medium">Atanan</th>
-                                <th class="px-5 py-3 font-medium">Oncelik</th>
-                                <th class="px-5 py-3 font-medium">Bitis Tarihi</th>
+                                <th class="px-5 py-3 font-medium">Öncelik</th>
+                                <th class="px-5 py-3 font-medium">Bitiş Tarihi</th>
                                 <th class="px-5 py-3 font-medium">Durum</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">Islemler</th>` : ''}
+                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
                             </tr>
                         </thead>
                         <tbody id="task-table-body" class="divide-y divide-gray-50">
@@ -114,10 +123,10 @@ function buildRow(t, today, canWrite, canDelete, profile) {
         : '-';
     const assignee = t.assigned?.full_name ? escHtml(t.assigned.full_name) : '-';
 
-    const isOverdue = t.end_date && t.end_date < today && t.status !== 'Tamamlandi';
+    const isOverdue = t.end_date && t.end_date < today && t.status !== 'Tamamlandı';
 
     const canEdit = canWrite && (
-        profile?.role === 'Yonetici' ||
+        profile?.role === 'Yönetici' ||
         t.assigned?.id === profile?.id ||
         t.customers // baska bir yetkilendirme gerekebilir
     );
@@ -130,9 +139,15 @@ function buildRow(t, today, canWrite, canDelete, profile) {
                 class="text-xs px-2.5 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50">Sil</button>` : ''}
         </div>` : '';
 
+    let desc = t.description ? escHtml(t.description) : '-';
+    if (desc.length > 55) {
+        desc = desc.substring(0, 55) + '...';
+    }
+
     return `
         <tr class="cursor-pointer ${isOverdue ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-slate-50'} transition-colors" data-status="${escHtml(t.status)}" data-id="${t.id}">
             <td class="px-5 py-3 font-medium text-gray-800">${escHtml(t.title)}</td>
+            <td class="px-5 py-3 text-gray-500 text-xs max-w-[200px]">${desc}</td>
             <td class="px-5 py-3 text-gray-600">${customer}</td>
             <td class="px-5 py-3 text-gray-600">${assignee}</td>
             <td class="px-5 py-3">${priorityBadge(t.priority)}</td>
@@ -153,7 +168,7 @@ function buildModal(custOptions, staffOptions) {
             role="dialog" aria-modal="true" aria-hidden="true">
             <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h3 id="task-modal-title" class="text-lg font-semibold text-gray-800">Yeni Gorev</h3>
+                    <h3 id="task-modal-title" class="text-lg font-semibold text-gray-800">Yeni Görev</h3>
                     <button data-close-modal="task-modal" class="text-gray-400 hover:text-gray-600 p-1 rounded-md">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -162,19 +177,19 @@ function buildModal(custOptions, staffOptions) {
                     <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Baslik <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Başlık <span class="text-red-500">*</span></label>
                             <input type="text" name="title" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Aciklama</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
                             <textarea name="description" rows="3"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Musteri</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Müşteri</label>
                             <select name="customer_id"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="">-- Secin --</option>
@@ -192,7 +207,7 @@ function buildModal(custOptions, staffOptions) {
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Oncelik</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Öncelik</label>
                             <select name="priority"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="Orta">Orta</option>
@@ -206,31 +221,31 @@ function buildModal(custOptions, staffOptions) {
                             <select name="status"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="Bekliyor">Bekliyor</option>
-                                <option value="Tamamlandi">Tamamlandi</option>
+                                <option value="Tamamlandı">Tamamlandı</option>
                                 <option value="Gecikti">Gecikti</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Baslangic Tarihi</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
                             <input type="date" name="start_date"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Bitis Tarihi</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
                             <input type="date" name="end_date"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Baslangic Saati</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Başlangıç Saati</label>
                             <input type="time" name="start_time"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Bitis Saati</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş Saati</label>
                             <input type="time" name="end_time"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
@@ -238,7 +253,7 @@ function buildModal(custOptions, staffOptions) {
                     </div>
                     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
                         <button type="button" data-close-modal="task-modal"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Iptal</button>
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">İptal</button>
                         <button type="submit"
                             class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-60">Kaydet</button>
                     </div>
@@ -254,7 +269,7 @@ function buildModal(custOptions, staffOptions) {
 
 function bindEvents(profile, customers, staff, tasks) {
     document.getElementById('btn-open-create')?.addEventListener('click', () => {
-        document.getElementById('task-modal-title').textContent = 'Yeni Gorev';
+        document.getElementById('task-modal-title').textContent = 'Yeni Görev';
         document.getElementById('task-modal-form').dataset.editId = '';
         document.getElementById('task-modal-form').reset();
         openModal('task-modal');
@@ -283,7 +298,7 @@ function bindEvents(profile, customers, staff, tasks) {
             const task   = tasks.find(t => t.id === id);
 
             if (action === 'edit' && task) {
-                document.getElementById('task-modal-title').textContent = 'Gorev Duzenle';
+                document.getElementById('task-modal-title').textContent = 'Görev Duzenle';
                 document.getElementById('task-modal-form').dataset.editId = id;
                 fillTaskForm(document.getElementById('task-modal-form'), task);
                 openModal('task-modal');
@@ -291,10 +306,10 @@ function bindEvents(profile, customers, staff, tasks) {
 
             if (action === 'delete') {
                 const name = btn.dataset.name;
-                if (!confirm(`"${name}" gorevi silinecek. Emin misiniz?`)) return;
+                if (!confirm(`"${name}" görevi silinecek. Emin misiniz?`)) return;
                 const { error } = await supabase.from('tasks').delete().eq('id', id);
                 if (error) { showToast(translateError(error), 'error'); return; }
-                showToast('Gorev silindi.', 'success');
+                showToast('Görev silindi.', 'success');
                 await renderTasks({ profile });
             }
             return;
@@ -359,7 +374,7 @@ async function saveTask(form, profile) {
     };
 
     if (!payload.title) {
-        showToast('Gorev basligi zorunludur.', 'error');
+        showToast('Görev basligi zorunludur.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Kaydet';
         return;
@@ -374,7 +389,7 @@ async function saveTask(form, profile) {
             ({ error } = await supabase.from('tasks').insert(payload));
         }
         if (error) throw error;
-        showToast(editId ? 'Gorev guncellendi.' : 'Gorev olusturuldu.', 'success');
+        showToast(editId ? 'Görev güncellendi.' : 'Görev olusturuldu.', 'success');
         closeModal('task-modal');
         await renderTasks({ profile });
     } catch (err) {
