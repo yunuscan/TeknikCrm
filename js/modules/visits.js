@@ -10,6 +10,7 @@ import { buildVisitDetailModal, showVisitDetail } from './details.js';
 // ---------------------------------------------------
 
 export async function renderVisits({ profile }) {
+    console.log('Aktif Rol:', profile?.role);
     setPageTitle('Ziyaret Planı');
 
     const [visitsRes, customersRes, staffRes] = await Promise.all([
@@ -59,12 +60,11 @@ function buildHTML(visits, customers, staff, canWrite, canDelete, profile) {
                     <h1 class="text-2xl font-bold text-gray-800">Ziyaret Planı</h1>
                     <p class="text-sm text-gray-500 mt-0.5">${visits.length} ziyaret kaydi</p>
                 </div>
-                ${canWrite ? `
                 <button id="btn-open-create"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 font-bold text-sm rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     Yeni Ziyaret
-                </button>` : ''}
+                </button>
             </div>
 
             <!-- Durum filtresi -->

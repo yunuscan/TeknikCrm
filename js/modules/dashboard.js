@@ -1,7 +1,7 @@
 import { supabase } from '../supabase-config.js';
 import {
     setContent, escHtml, formatDate, formatDateTime,
-    statusBadge, priorityBadge, closeModal
+    statusBadge, priorityBadge, closeModal, getFeeStatusFromSupport
 } from '../utils.js';
 import {
     buildTaskDetailModal, showTaskDetail,
@@ -14,6 +14,7 @@ import {
 // ---------------------------------------------------
 
 export async function renderDashboard({ profile }) {
+    console.log('Aktif Rol:', profile?.role);
     const today = new Date().toISOString().split('T')[0];
     const warnDate = new Date(); warnDate.setDate(warnDate.getDate() + 30);
     const warnStr = warnDate.toISOString().split('T')[0];
@@ -71,13 +72,6 @@ export async function renderDashboard({ profile }) {
     const activeTasks = todayTasksListRes.data || [];
     const activeTasksList = overdueTasksListRes.data || [];
 
-    // GECICI MOCK VERILER
-    activeTasksList.unshift(
-        { id: 'm1', title: 'Sunucu Bakımı ve Güncelleme', description: 'Ana veritabanı sunucusunun planlı bakımı yapılacak. İşletim sistemi güncellemeleri, güvenlik yamaları ve performans iyileştirmeleri uygulanacak.', priority: 'Acil', status: 'Gecikti', end_date: '2026-07-05', customers: { company_name: 'Mock Şirket A.Ş.' }, assigned: { full_name: 'Ali Yılmaz' } },
-        { id: 'm2', title: 'Yeni Modül Entegrasyonu', description: 'CRM sistemine talep edilen yeni raporlama modülü entegre edilecek. Veri kaynakları bağlanacak ve test edilecek.', priority: 'Orta', status: 'Bekliyor', end_date: '2026-07-15', customers: { company_name: 'Tech Çözümler Ltd.' }, assigned: { full_name: 'Ayşe Kaya' } },
-        { id: 'm3', title: 'Müşteri Toplantısı Hazırlığı', description: 'Aşırı uzun bir açıklama testi. Müşteri toplantısı için gerekli sunumlar ve veriler toparlanacak. Geçmiş döneme ait satış raporları çıkarılacak.', priority: 'Yüksek', status: 'Bekliyor', end_date: '2026-07-09', customers: { company_name: 'Global A.Ş.' }, assigned: { full_name: 'Can Can' } },
-        { id: 'm4', title: 'Ağ Altyapısı Yenilemesi', description: 'Ofis ağ altyapısının baştan aşağı yenilenmesi. Eski switchlerin gigabit switchlerle değiştirilmesi işlemi.', priority: 'Orta', status: 'Gecikti', end_date: '2026-06-25', customers: { company_name: 'Mock Şirket A.Ş.' }, assigned: { full_name: 'Ali Yılmaz' } }
-    );
     const upcomingLicenses = upcomingLicensesListRes.data || [];
     const activeSupports = activeSupportsListRes.data || [];
 
@@ -151,14 +145,20 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
                 </div>
 
                 <!-- Aktif Görevler Bento Box (span 8) -->
-                <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col" style="max-height:calc(100vh - 240px)">
+                <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col" style="height:calc(100vh - 240px)">
                     <div class="flex items-center justify-between mb-4 flex-shrink-0">
                         <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                             Görevler
                         </h2>
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                            ${activeTasksList.length} Görev
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                ${activeTasksList.length} Görev
+                            </span>
+                            <a href="#" data-view="tasks" class="nav-link inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors" title="Yeni Görev">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Yeni
+                            </a>
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto flex-grow content-start pr-1">
                         ${activeCards}
@@ -166,17 +166,23 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
                 </div>
 
                 <!-- Sağ Kenar Bento Box (span 4) -->
-                <div class="lg:col-span-4 flex flex-col gap-4" style="max-height:calc(100vh - 240px)">
+                <div class="lg:col-span-4 flex flex-col gap-4" style="height:calc(100vh - 240px)">
                     
                     <!-- Bugünün Ajandası -->
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-0 flex-1">
                         <div class="flex items-center justify-between mb-4 flex-shrink-0">
                             <h2 class="text-base font-bold text-gray-800">Takvim</h2>
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                ${stats.todayAgenda} Kayıt
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                    ${stats.todayAgenda} Kayıt
+                                </span>
+                                <a href="#" data-view="visits" class="nav-link inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg hover:bg-emerald-100 transition-colors" title="Yeni Ziyaret">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    Yeni
+                                </a>
+                            </div>
                         </div>
-                        <div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
+                        <div class="flex flex-col gap-2.5 overflow-y-auto flex-grow pr-1">
                             ${agendaCardsHtml}
                         </div>
                     </div>
@@ -185,11 +191,17 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-0 flex-1">
                         <div class="flex items-center justify-between mb-4 flex-shrink-0">
                             <h2 class="text-base font-bold text-gray-800">Teknik Destek</h2>
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-100">
-                                ${activeSupports.length} Kayıt
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-100">
+                                    ${activeSupports.length} Kayıt
+                                </span>
+                                <a href="#" data-view="technical-support" class="nav-link inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 rounded-lg hover:bg-orange-100 transition-colors" title="Yeni Destek">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    Yeni
+                                </a>
+                            </div>
                         </div>
-                        <div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
+                        <div class="flex flex-col gap-2.5 overflow-y-auto flex-grow pr-1">
                             ${supportCards}
                         </div>
                     </div>
@@ -299,6 +311,13 @@ function buildSupportCard(support) {
         ? formatDateTime(support.start_time)
         : '-';
 
+    const feeStatus = getFeeStatusFromSupport(support);
+    const feeBadge = feeStatus === 'Ödendi' 
+        ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-600 text-white border border-green-700">Ödendi</span>`
+        : (feeStatus === 'Ödenmedi'
+            ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-600 text-white border border-red-700">Ödenmedi</span>`
+            : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white border border-amber-600">Bekliyor</span>`);
+
     return `
         <div class="bg-slate-50 rounded-xl border border-slate-100 p-3.5 hover:bg-white hover:shadow-md hover:border-orange-200 transition-all cursor-pointer group flex flex-col gap-2.5" data-type="support" data-id="${support.id}">
             <div class="flex justify-between items-start">
@@ -311,6 +330,7 @@ function buildSupportCard(support) {
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
                 <span class="text-[11px] text-gray-400 font-medium">${timeStr}</span>
+                ${feeBadge}
             </div>
         </div>
     `;

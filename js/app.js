@@ -56,9 +56,17 @@ export function navigate(view) {
         return;
     }
 
-    if (route.roles.length > 0 && !route.roles.includes(currentProfile?.role)) {
-        showToast('Bu sayfaya erisim yetkiniz bulunmamaktadir.', 'error');
-        return;
+    if (route.roles.length > 0) {
+        const hasAccess = route.roles.some(r => {
+            if (r === 'Yönetici' || r === 'Yonetici') {
+                return currentProfile?.role === 'Yönetici' || currentProfile?.role === 'Yonetici';
+            }
+            return r === currentProfile?.role;
+        });
+        if (!hasAccess) {
+            showToast('Bu sayfaya erisim yetkiniz bulunmamaktadir.', 'error');
+            return;
+        }
     }
 
     currentView = view;
@@ -112,8 +120,16 @@ function updateSidebarActive(view) {
 function applyMenuVisibility(role) {
     document.querySelectorAll('[data-requires-role]').forEach(li => {
         const allowed = li.dataset.requiresRole.split(',').map(r => r.trim());
-        if (!allowed.includes(role)) {
+        const hasAccess = allowed.some(r => {
+            if (r === 'Yönetici' || r === 'Yonetici') {
+                return role === 'Yönetici' || role === 'Yonetici';
+            }
+            return r === role;
+        });
+        if (!hasAccess) {
             li.classList.add('hidden');
+        } else {
+            li.classList.remove('hidden');
         }
     });
 }
@@ -252,6 +268,13 @@ async function init() {
         supabase.auth.onAuthStateChange(event => {
             if (event === 'SIGNED_OUT') {
                 window.location.replace('login.html');
+            }
+        });
+
+        // Ücret veya destek güncellendiğinde aktif görünümü yenile
+        window.addEventListener('support-updated', () => {
+            if (currentView) {
+                navigate(currentView);
             }
         });
 

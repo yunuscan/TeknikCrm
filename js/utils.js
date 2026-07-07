@@ -186,3 +186,22 @@ export function translateError(err) {
     if (msg.includes('not null')) return 'Zorunlu alanlar bos birakilamaz.';
     return msg;
 }
+
+// ---------------------------------------------------
+// Ücret Durumu Yardımcı Fonksiyonları
+// ---------------------------------------------------
+
+export function getFeeStatusFromSupport(support) {
+    const notes = support.notes || '';
+    if (notes.includes('[FEE:Ödendi]')) return 'Ödendi';
+    if (notes.includes('[FEE:Ödenmedi]')) return 'Ödenmedi';
+    if (notes.includes('[FEE:Bekliyor]')) return 'Bekliyor';
+    return support.support_number % 3 === 0 ? 'Ödendi' : (support.support_number % 3 === 1 ? 'Ödenmedi' : 'Bekliyor');
+}
+
+export function setFeeStatusInNotes(notesText, feeStatus) {
+    let cleanNotes = (notesText || '')
+        .replace(/\[FEE:(Ödendi|Ödenmedi|Bekliyor)\]/g, '')
+        .trim();
+    return `[FEE:${feeStatus}] ${cleanNotes}`.trim();
+}

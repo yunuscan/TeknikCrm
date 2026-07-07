@@ -11,6 +11,7 @@ import { buildTaskDetailModal, showTaskDetail } from './details.js';
 // ---------------------------------------------------
 
 export async function renderTasks({ profile }) {
+    console.log('Aktif Rol:', profile?.role);
     setPageTitle('Görevler');
 
     const [tasksRes, customersRes, staffRes] = await Promise.all([
@@ -29,13 +30,6 @@ export async function renderTasks({ profile }) {
 
     const tasks     = tasksRes.data    || [];
     
-    // GECICI MOCK VERILER
-    tasks.unshift(
-        { id: 'm1', title: 'Sunucu Bakımı ve Güncelleme', description: 'Ana veritabanı sunucusunun planlı bakımı yapılacak. İşletim sistemi güncellemeleri, güvenlik yamaları ve performans iyileştirmeleri uygulanacak.', priority: 'Acil', status: 'Gecikti', end_date: '2026-07-05', customers: { company_name: 'Mock Şirket A.Ş.' }, assigned: { full_name: 'Ali Yılmaz' } },
-        { id: 'm2', title: 'Yeni Modül Entegrasyonu', description: 'CRM sistemine talep edilen yeni raporlama modülü entegre edilecek. Veri kaynakları bağlanacak ve test edilecek.', priority: 'Orta', status: 'Bekliyor', end_date: '2026-07-15', customers: { company_name: 'Tech Çözümler Ltd.' }, assigned: { full_name: 'Ayşe Kaya' } },
-        { id: 'm3', title: 'Müşteri Toplantısı Hazırlığı', description: 'Aşırı uzun bir açıklama testi. Müşteri toplantısı için gerekli sunumlar ve veriler toparlanacak. Geçmiş döneme ait satış raporları çıkarılacak.', priority: 'Yüksek', status: 'Bekliyor', end_date: '2026-07-09', customers: { company_name: 'Global A.Ş.' }, assigned: { full_name: 'Can Can' } },
-        { id: 'm4', title: 'Ağ Altyapısı Yenilemesi', description: 'Ofis ağ altyapısının baştan aşağı yenilenmesi. Eski switchlerin gigabit switchlerle değiştirilmesi işlemi.', priority: 'Orta', status: 'Gecikti', end_date: '2026-06-25', customers: { company_name: 'Mock Şirket A.Ş.' }, assigned: { full_name: 'Ali Yılmaz' } }
-    );
     const customers = customersRes.data || [];
     const staff     = staffRes.data    || [];
 
@@ -68,12 +62,11 @@ function buildHTML(tasks, customers, staff, canWrite, canDelete, profile) {
                     <h1 class="text-2xl font-bold text-gray-800">Görevler</h1>
                     <p class="text-sm text-gray-500 mt-0.5">${tasks.length} görev kaydi</p>
                 </div>
-                ${canWrite ? `
                 <button id="btn-open-create"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 font-bold text-sm rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     Yeni Görev
-                </button>` : ''}
+                </button>
             </div>
 
             <!-- Durum filtresi -->

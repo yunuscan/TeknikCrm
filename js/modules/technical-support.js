@@ -1,7 +1,7 @@
 import { supabase }    from '../supabase-config.js';
 import {
     setContent, showToast, escHtml, formatDateTime,
-    statusBadge, openModal, closeModal, buildOptions, translateError, setPageTitle,
+    statusBadge, openModal, closeModal, buildOptions, translateError, setPageTitle, getFeeStatusFromSupport,
 } from '../utils.js';
 import { buildSupportDetailModal, showSupportDetail } from './details.js';
 
@@ -10,6 +10,7 @@ import { buildSupportDetailModal, showSupportDetail } from './details.js';
 // ---------------------------------------------------
 
 export async function renderTechnicalSupport({ profile }) {
+    console.log('Aktif Rol:', profile?.role);
     setPageTitle('Teknik Destek');
 
     const [supportsRes, customersRes, staffRes] = await Promise.all([
@@ -58,16 +59,15 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
                     <h1 class="text-2xl font-bold text-gray-800">Teknik Destek</h1>
                     <p class="text-sm text-gray-500 mt-0.5">${supports.length} kayıt listeleniyor</p>
                 </div>
-                ${canWrite ? `
                 <button
                     id="btn-new-support"
-                    class="btn-new-support inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 font-bold text-sm rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-orange-300"
                 >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
                     Yeni Destek
-                </button>` : ''}
+                </button>
             </div>
 
             <!-- Durum filtresi -->
@@ -91,6 +91,7 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
                                 <th class="px-5 py-3 font-medium">Arayan</th>
                                 <th class="px-5 py-3 font-medium">Atanan</th>
                                 <th class="px-5 py-3 font-medium">Başlangıç</th>
+                                <th class="px-5 py-3 font-medium">Ücret Durumu</th>
                                 <th class="px-5 py-3 font-medium">Durum</th>
                                 ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
                             </tr>
@@ -129,6 +130,13 @@ function buildRow(s, canWrite, profile) {
         <div><button data-action="detail" data-id="${s.id}"
             class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Detay</button></div>`;
 
+    const feeStatus = getFeeStatusFromSupport(s);
+    const feeBadge = feeStatus === 'Ödendi' 
+        ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-green-600 text-white border border-green-700">Ödendi</span>`
+        : (feeStatus === 'Ödenmedi'
+            ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-red-600 text-white border border-red-700">Ödenmedi</span>`
+            : `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500 text-white border border-amber-600">Bekliyor</span>`);
+
     return `
         <tr class="cursor-pointer hover:bg-slate-50 transition-colors" data-status="${escHtml(s.status)}" data-id="${s.id}">
             <td class="px-5 py-3">
@@ -139,6 +147,7 @@ function buildRow(s, canWrite, profile) {
             <td class="px-5 py-3 text-gray-600">${escHtml(s.caller_name)}</td>
             <td class="px-5 py-3 text-gray-600">${assignee}</td>
             <td class="px-5 py-3 text-gray-500 text-xs">${formatDateTime(s.start_time)}</td>
+            <td class="px-5 py-3">${feeBadge}</td>
             <td class="px-5 py-3">${statusBadge(s.status)}</td>
             ${canWrite ? `<td class="px-5 py-3">${actions}</td>` : ''}
         </tr>

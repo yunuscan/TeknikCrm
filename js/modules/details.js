@@ -2,7 +2,7 @@ import { supabase } from '../supabase-config.js';
 import {
     escHtml, formatDate, formatDateTime,
     statusBadge, priorityBadge, openModal, closeModal,
-    showToast, translateError
+    showToast, translateError, getFeeStatusFromSupport, setFeeStatusInNotes
 } from '../utils.js';
 
 // ---------------------------------------------------
@@ -208,6 +208,14 @@ export async function showSupportDetail(s, profile) {
     `).join('') || '<p class="text-sm text-gray-400">Log girisi bulunmamaktadir.</p>';
 
     const canLog = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
+    const isAdmin = ['Yönetici', 'Yonetici'].includes(profile?.role);
+
+    const feeStatus = getFeeStatusFromSupport(s);
+    const feeBadge = feeStatus === 'Ödendi' 
+        ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-green-600 text-white border border-green-700">Ödendi</span>`
+        : (feeStatus === 'Ödenmedi'
+            ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-red-600 text-white border border-red-700">Ödenmedi</span>`
+            : `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500 text-white border border-amber-600">Bekliyor</span>`);
 
     document.getElementById('detail-modal-title').textContent = `Destek #${s.support_number}`;
     document.getElementById('detail-modal-body').innerHTML = `
@@ -216,6 +224,18 @@ export async function showSupportDetail(s, profile) {
             <div><span class="text-gray-400 text-xs">Durum</span><div class="mt-0.5">${statusBadge(s.status)}</div></div>
             <div><span class="text-gray-400 text-xs">Arayan</span><p class="text-gray-700">${escHtml(s.caller_name)} ${s.caller_phone ? `<span class="text-gray-400">(${escHtml(s.caller_phone)})</span>` : ''}</p></div>
             <div><span class="text-gray-400 text-xs">Başlangıç</span><p class="text-gray-700">${formatDateTime(s.start_time)}</p></div>
+            <div>
+                <span class="text-gray-400 text-xs">Ücret Durumu</span>
+                <div class="mt-0.5">
+                    ${isAdmin ? `
+                        <select id="detail-support-fee-status" class="px-2 py-1 text-xs font-semibold rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <option value="Bekliyor" ${feeStatus === 'Bekliyor' ? 'selected' : ''}>Bekliyor</option>
+                            <option value="Ödendi" ${feeStatus === 'Ödendi' ? 'selected' : ''}>Ödendi</option>
+                            <option value="Ödenmedi" ${feeStatus === 'Ödenmedi' ? 'selected' : ''}>Ödenmedi</option>
+                        </select>
+                    ` : feeBadge}
+                </div>
+            </div>
         </div>
         <div>
             <p class="text-xs text-gray-400 mb-1">Konu</p>
@@ -240,6 +260,26 @@ export async function showSupportDetail(s, profile) {
     `;
 
     openModal('support-detail-modal');
+
+    const feeSelect = document.getElementById('detail-support-fee-status');
+    if (feeSelect) {
+        feeSelect.onchange = async () => {
+            const newFee = feeSelect.value;
+            const newNotes = setFeeStatusInNotes(s.notes, newFee);
+            s.notes = newNotes;
+            const { error } = await supabase
+                .from('technical_supports')
+                .update({ notes: newNotes })
+                .eq('id', s.id);
+            if (error) {
+                showToast(translateError(error), 'error');
+                return;
+            }
+            showToast('Ücret durumu güncellendi.', 'success');
+            await showSupportDetail(s, profile);
+            window.dispatchEvent(new CustomEvent('support-updated'));
+        };
+    }
 
     // Add log event listener
     const addLogBtn = document.getElementById('btn-add-log');

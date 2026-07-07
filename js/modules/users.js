@@ -86,6 +86,18 @@ function buildRow(p, currentProfile) {
         'Misafir':        'bg-gray-100 text-gray-600',
     }[p.role] || 'bg-gray-100 text-gray-600';
 
+    const roleElement = isSelf
+        ? `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${roleCls}">${escHtml(p.role)}</span>`
+        : `
+        <select data-action="change-role" data-id="${p.id}"
+            class="px-2 py-1 text-xs font-semibold rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="Yönetici" ${p.role === 'Yönetici' || p.role === 'Yonetici' ? 'selected' : ''}>Yönetici</option>
+            <option value="Teknik Servis" ${p.role === 'Teknik Servis' ? 'selected' : ''}>Teknik Servis</option>
+            <option value="Satış Personeli" ${p.role === 'Satış Personeli' ? 'selected' : ''}>Satış Personeli</option>
+            <option value="Misafir" ${p.role === 'Misafir' ? 'selected' : ''}>Misafir</option>
+        </select>
+        `;
+
     return `
         <tr class="hover:bg-slate-50 transition-colors ${isSelf ? 'bg-indigo-50/40' : ''}">
             <td class="px-5 py-3">
@@ -99,7 +111,7 @@ function buildRow(p, currentProfile) {
             <td class="px-5 py-3 text-gray-600">${escHtml(p.email)}</td>
             <td class="px-5 py-3 text-gray-600">${escHtml(p.phone) || '-'}</td>
             <td class="px-5 py-3">
-                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${roleCls}">${escHtml(p.role)}</span>
+                ${roleElement}
             </td>
             <td class="px-5 py-3">
                 <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${statusCls}">${statusTxt}</span>
@@ -193,7 +205,14 @@ function bindEvents(profile, profiles) {
             document.getElementById('user-modal-form').dataset.editId = id;
             document.getElementById('user-modal-form').querySelector('[name="full_name"]').value = user.full_name || '';
             document.getElementById('user-modal-form').querySelector('[name="phone"]').value     = user.phone    || '';
-            document.getElementById('user-modal-form').querySelector('[name="role"]').value      = user.role     || 'Misafir';
+            
+            const roleSelect = document.getElementById('user-modal-form').querySelector('[name="role"]');
+            roleSelect.value = user.role || 'Misafir';
+            if (user.id === profile.id) {
+                roleSelect.disabled = true;
+            } else {
+                roleSelect.disabled = false;
+            }
             openModal('user-modal');
         }
 
@@ -209,6 +228,34 @@ function bindEvents(profile, profiles) {
         }
     });
 
+    document.querySelector('tbody')?.addEventListener('change', async e => {
+        const select = e.target.closest('[data-action="change-role"]');
+        if (!select) return;
+        
+        const id = select.dataset.id;
+        const newRole = select.value;
+        
+        if (id === profile.id) {
+            showToast('Kendi rolünüzü değiştiremezsiniz!', 'error');
+            select.value = profile.role;
+            return;
+        }
+        
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: newRole })
+            .eq('id', id);
+            
+        if (error) {
+            showToast(translateError(error), 'error');
+            await renderUsers({ profile });
+            return;
+        }
+        
+        showToast('Kullanıcı rolü başarıyla güncellendi.', 'success');
+        await renderUsers({ profile });
+    });
+
     document.getElementById('user-modal-form')?.addEventListener('submit', async e => {
         e.preventDefault();
         const form      = e.target;
@@ -221,8 +268,12 @@ function bindEvents(profile, profiles) {
         const payload = {
             full_name: fd.get('full_name')?.trim() || null,
             phone:     fd.get('phone')?.trim()     || null,
-            role:      fd.get('role')              || 'Misafir',
         };
+
+        const roleSelect = form.querySelector('[name="role"]');
+        if (!roleSelect.disabled) {
+            payload.role = fd.get('role') || 'Misafir';
+        }
 
         const { error } = await supabase.from('profiles').update(payload).eq('id', id);
         submitBtn.disabled = false;
