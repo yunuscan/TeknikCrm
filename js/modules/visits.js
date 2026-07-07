@@ -3,6 +3,7 @@ import {
     setContent, showToast, escHtml, formatDate,
     statusBadge, openModal, closeModal, buildOptions, translateError, setPageTitle,
 } from '../utils.js';
+import { buildVisitDetailModal, showVisitDetail } from './details.js';
 
 // ---------------------------------------------------
 // Ana render
@@ -96,6 +97,7 @@ function buildHTML(visits, customers, staff, canWrite, canDelete, profile) {
         </div>
 
         ${buildModal(custOptions, staffOptions)}
+        ${buildVisitDetailModal()}
     `;
 }
 
@@ -120,7 +122,7 @@ function buildRow(v, today, canWrite, canDelete) {
         </div>` : '';
 
     return `
-        <tr class="${isPast ? 'bg-orange-50' : 'hover:bg-slate-50'} transition-colors" data-status="${escHtml(v.status)}">
+        <tr class="cursor-pointer ${isPast ? 'bg-orange-50 hover:bg-orange-100' : 'hover:bg-slate-50'} transition-colors" data-status="${escHtml(v.status)}" data-id="${v.id}">
             <td class="px-5 py-3 font-medium text-gray-800">${customer}</td>
             <td class="px-5 py-3">
                 <span class="${isPast ? 'text-orange-600 font-semibold' : 'text-gray-700'}">${formatDate(v.visit_date)}</span>
@@ -271,25 +273,36 @@ function bindEvents(profile, customers, staff, visits) {
     // Tablo tiklama
     document.getElementById('visit-table-body')?.addEventListener('click', async e => {
         const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const id     = btn.dataset.id;
-        const action = btn.dataset.action;
-        const visit  = visits.find(v => v.id === id);
+        if (btn) {
+            const id     = btn.dataset.id;
+            const action = btn.dataset.action;
+            const visit  = visits.find(v => v.id === id);
 
-        if (action === 'edit' && visit) {
-            document.getElementById('visit-modal-title').textContent = 'Ziyaret Duzenle';
-            document.getElementById('visit-modal-form').dataset.editId = id;
-            fillVisitForm(document.getElementById('visit-modal-form'), visit);
-            openModal('visit-modal');
+            if (action === 'edit' && visit) {
+                document.getElementById('visit-modal-title').textContent = 'Ziyaret Duzenle';
+                document.getElementById('visit-modal-form').dataset.editId = id;
+                fillVisitForm(document.getElementById('visit-modal-form'), visit);
+                openModal('visit-modal');
+            }
+
+            if (action === 'delete') {
+                const name = btn.dataset.name;
+                if (!confirm(`"${name}" ziyareti silinecek. Emin misiniz?`)) return;
+                const { error } = await supabase.from('visits').delete().eq('id', id);
+                if (error) { showToast(translateError(error), 'error'); return; }
+                showToast('Ziyaret silindi.', 'success');
+                await renderVisits({ profile });
+            }
+            return;
         }
 
-        if (action === 'delete') {
-            const name = btn.dataset.name;
-            if (!confirm(`"${name}" ziyareti silinecek. Emin misiniz?`)) return;
-            const { error } = await supabase.from('visits').delete().eq('id', id);
-            if (error) { showToast(translateError(error), 'error'); return; }
-            showToast('Ziyaret silindi.', 'success');
-            await renderVisits({ profile });
+        const row = e.target.closest('tr[data-id]');
+        if (row) {
+            const id = row.dataset.id;
+            const visit = visits.find(v => v.id === id);
+            if (visit) {
+                showVisitDetail(visit);
+            }
         }
     });
 

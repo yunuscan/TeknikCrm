@@ -260,7 +260,12 @@ async function init() {
 
     } catch (err) {
         console.error('[Init Error]', err);
-        window.location.replace('login.html');
+        try {
+            await signOut();
+        } catch (e) {
+            console.error('Signout failed during init error handling:', e);
+        }
+        window.location.replace('login.html?reason=profile_error');
     }
 }
 

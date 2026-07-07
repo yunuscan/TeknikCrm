@@ -137,6 +137,8 @@
         const params = new URLSearchParams(window.location.search);
         if (params.get('reason') === 'inactive') {
             showAlert('Hesabiniz pasif durumda. Yonetici ile iletisime gecin.', 'error');
+        } else if (params.get('reason') === 'profile_error') {
+            showAlert('Kullanıcı profiliniz bulunamadı. Lütfen yöneticinizle iletişime geçin.', 'error');
         }
 
         // ---------------------------------------------------

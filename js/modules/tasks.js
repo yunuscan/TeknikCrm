@@ -4,6 +4,7 @@ import {
     statusBadge, priorityBadge, openModal, closeModal,
     buildOptions, translateError, setPageTitle,
 } from '../utils.js';
+import { buildTaskDetailModal, showTaskDetail } from './details.js';
 
 // ---------------------------------------------------
 // Ana render
@@ -99,6 +100,7 @@ function buildHTML(tasks, customers, staff, canWrite, canDelete, profile) {
         </div>
 
         ${buildModal(custOptions, staffOptions)}
+        ${buildTaskDetailModal()}
     `;
 }
 
@@ -129,7 +131,7 @@ function buildRow(t, today, canWrite, canDelete, profile) {
         </div>` : '';
 
     return `
-        <tr class="${isOverdue ? 'bg-red-50' : 'hover:bg-slate-50'} transition-colors" data-status="${escHtml(t.status)}">
+        <tr class="cursor-pointer ${isOverdue ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-slate-50'} transition-colors" data-status="${escHtml(t.status)}" data-id="${t.id}">
             <td class="px-5 py-3 font-medium text-gray-800">${escHtml(t.title)}</td>
             <td class="px-5 py-3 text-gray-600">${customer}</td>
             <td class="px-5 py-3 text-gray-600">${assignee}</td>
@@ -275,25 +277,36 @@ function bindEvents(profile, customers, staff, tasks) {
 
     document.getElementById('task-table-body')?.addEventListener('click', async e => {
         const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const id     = btn.dataset.id;
-        const action = btn.dataset.action;
-        const task   = tasks.find(t => t.id === id);
+        if (btn) {
+            const id     = btn.dataset.id;
+            const action = btn.dataset.action;
+            const task   = tasks.find(t => t.id === id);
 
-        if (action === 'edit' && task) {
-            document.getElementById('task-modal-title').textContent = 'Gorev Duzenle';
-            document.getElementById('task-modal-form').dataset.editId = id;
-            fillTaskForm(document.getElementById('task-modal-form'), task);
-            openModal('task-modal');
+            if (action === 'edit' && task) {
+                document.getElementById('task-modal-title').textContent = 'Gorev Duzenle';
+                document.getElementById('task-modal-form').dataset.editId = id;
+                fillTaskForm(document.getElementById('task-modal-form'), task);
+                openModal('task-modal');
+            }
+
+            if (action === 'delete') {
+                const name = btn.dataset.name;
+                if (!confirm(`"${name}" gorevi silinecek. Emin misiniz?`)) return;
+                const { error } = await supabase.from('tasks').delete().eq('id', id);
+                if (error) { showToast(translateError(error), 'error'); return; }
+                showToast('Gorev silindi.', 'success');
+                await renderTasks({ profile });
+            }
+            return;
         }
 
-        if (action === 'delete') {
-            const name = btn.dataset.name;
-            if (!confirm(`"${name}" gorevi silinecek. Emin misiniz?`)) return;
-            const { error } = await supabase.from('tasks').delete().eq('id', id);
-            if (error) { showToast(translateError(error), 'error'); return; }
-            showToast('Gorev silindi.', 'success');
-            await renderTasks({ profile });
+        const row = e.target.closest('tr[data-id]');
+        if (row) {
+            const id = row.dataset.id;
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                showTaskDetail(task);
+            }
         }
     });
 

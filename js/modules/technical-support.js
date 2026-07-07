@@ -3,6 +3,7 @@ import {
     setContent, showToast, escHtml, formatDateTime,
     statusBadge, openModal, closeModal, buildOptions, translateError, setPageTitle,
 } from '../utils.js';
+import { buildSupportDetailModal, showSupportDetail } from './details.js';
 
 // ---------------------------------------------------
 // Ana render
@@ -104,7 +105,7 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
         </div>
 
         ${buildNewSupportModal(custOptions, staffOptions)}
-        ${buildDetailModal()}
+        ${buildSupportDetailModal()}
     `;
 }
 
@@ -129,7 +130,7 @@ function buildRow(s, canWrite, profile) {
             class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Detay</button></div>`;
 
     return `
-        <tr class="hover:bg-slate-50 transition-colors" data-status="${escHtml(s.status)}">
+        <tr class="cursor-pointer hover:bg-slate-50 transition-colors" data-status="${escHtml(s.status)}" data-id="${s.id}">
             <td class="px-5 py-3">
                 <span class="support-number-badge text-indigo-700">#${s.support_number}</span>
             </td>
@@ -240,32 +241,7 @@ function buildNewSupportModal(custOptions, staffOptions) {
     `;
 }
 
-// ---------------------------------------------------
-// Detay Modal (log girisi icin)
-// ---------------------------------------------------
 
-function buildDetailModal() {
-    return `
-        <div id="support-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay"
-            role="dialog" aria-modal="true" aria-hidden="true">
-            <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h3 id="detail-modal-title" class="text-lg font-semibold text-gray-800">Destek Detayi</h3>
-                    <button data-close-modal="support-detail-modal" class="text-gray-400 hover:text-gray-600 p-1 rounded-md">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-                <div id="detail-modal-body" class="px-6 py-5 space-y-4">
-                    <!-- Dinamik icerik -->
-                </div>
-                <div class="flex justify-end px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-                    <button type="button" data-close-modal="support-detail-modal"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Kapat</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
 
 // ---------------------------------------------------
 // Olay baglama
@@ -298,21 +274,32 @@ function bindEvents(profile, customers, staff, supports) {
     // Tablo tiklama
     document.getElementById('support-table-body')?.addEventListener('click', async e => {
         const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const id     = btn.dataset.id;
-        const action = btn.dataset.action;
-        const support = supports.find(s => s.id === id);
-        if (!support) return;
+        if (btn) {
+            const id     = btn.dataset.id;
+            const action = btn.dataset.action;
+            const support = supports.find(s => s.id === id);
+            if (!support) return;
 
-        if (action === 'detail') {
-            await showDetail(support, profile);
+            if (action === 'detail') {
+                await showSupportDetail(support, profile);
+            }
+
+            if (action === 'edit') {
+                document.getElementById('support-modal-title').textContent = 'Destek Guncelle';
+                fillSupportForm(document.getElementById('support-modal-form'), support);
+                document.getElementById('support-modal-form').dataset.editId = id;
+                openModal('support-modal');
+            }
+            return;
         }
 
-        if (action === 'edit') {
-            document.getElementById('support-modal-title').textContent = 'Destek Guncelle';
-            fillSupportForm(document.getElementById('support-modal-form'), support);
-            document.getElementById('support-modal-form').dataset.editId = id;
-            openModal('support-modal');
+        const row = e.target.closest('tr[data-id]');
+        if (row) {
+            const id = row.dataset.id;
+            const support = supports.find(s => s.id === id);
+            if (support) {
+                await showSupportDetail(support, profile);
+            }
         }
     });
 
@@ -323,80 +310,7 @@ function bindEvents(profile, customers, staff, supports) {
     });
 }
 
-// ---------------------------------------------------
-// Detay goruntuleme
-// ---------------------------------------------------
 
-async function showDetail(s, profile) {
-    const { data: logs } = await supabase
-        .from('support_logs')
-        .select('*, logged_by_profile:profiles!support_logs_logged_by_fkey(full_name)')
-        .eq('support_id', s.id)
-        .order('created_at', { ascending: true });
-
-    const customer = s.customers
-        ? (s.customers.company_name || `${s.customers.first_name} ${s.customers.last_name}`)
-        : '-';
-
-    const logItems = (logs || []).map(l => `
-        <div class="flex gap-3 text-sm">
-            <div class="flex-shrink-0 w-1 bg-indigo-200 rounded-full"></div>
-            <div>
-                <p class="text-gray-700">${escHtml(l.log_entry)}</p>
-                <p class="text-xs text-gray-400 mt-0.5">${escHtml(l.logged_by_profile?.full_name || '-')} &mdash; ${formatDateTime(l.created_at)}</p>
-            </div>
-        </div>
-    `).join('') || '<p class="text-sm text-gray-400">Log girisi bulunmamaktadir.</p>';
-
-    const canLog = ['Yonetici', 'Teknik Servis'].includes(profile?.role);
-
-    document.getElementById('detail-modal-title').textContent = `Destek #${s.support_number}`;
-    document.getElementById('detail-modal-body').innerHTML = `
-        <div class="grid grid-cols-2 gap-3 text-sm">
-            <div><span class="text-gray-400 text-xs">Musteri</span><p class="font-medium text-gray-800">${escHtml(customer)}</p></div>
-            <div><span class="text-gray-400 text-xs">Durum</span><p class="mt-0.5">${statusBadge(s.status)}</p></div>
-            <div><span class="text-gray-400 text-xs">Arayan</span><p class="text-gray-700">${escHtml(s.caller_name)} ${s.caller_phone ? `<span class="text-gray-400">(${escHtml(s.caller_phone)})</span>` : ''}</p></div>
-            <div><span class="text-gray-400 text-xs">Baslangic</span><p class="text-gray-700">${formatDateTime(s.start_time)}</p></div>
-        </div>
-        <div>
-            <p class="text-xs text-gray-400 mb-1">Konu</p>
-            <p class="text-gray-800 font-medium">${escHtml(s.subject)}</p>
-        </div>
-        ${s.description ? `<div><p class="text-xs text-gray-400 mb-1">Aciklama</p><p class="text-gray-700 text-sm">${escHtml(s.description)}</p></div>` : ''}
-        ${s.resolution ? `<div><p class="text-xs text-gray-400 mb-1">Cozum</p><p class="text-gray-700 text-sm">${escHtml(s.resolution)}</p></div>` : ''}
-        <div>
-            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayitlari</p>
-            <div class="space-y-3">${logItems}</div>
-        </div>
-        ${canLog ? `
-        <div class="pt-2 border-t border-gray-100">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Yeni Log Girisi</label>
-            <textarea id="new-log-entry" rows="2" placeholder="Log notu girin..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
-            <button id="btn-add-log" data-support-id="${s.id}"
-                class="mt-2 px-4 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
-                Log Ekle
-            </button>
-        </div>` : ''}
-    `;
-
-    openModal('support-detail-modal');
-
-    document.getElementById('btn-add-log')?.addEventListener('click', async () => {
-        const entry = document.getElementById('new-log-entry').value.trim();
-        if (!entry) return;
-        const userId = (await supabase.auth.getUser()).data.user?.id;
-        const { error } = await supabase.from('support_logs').insert({
-            support_id: s.id,
-            logged_by:  userId,
-            log_entry:  entry,
-        });
-        if (error) { showToast(translateError(error), 'error'); return; }
-        showToast('Log eklendi.', 'success');
-        document.getElementById('new-log-entry').value = '';
-        await showDetail(s, profile);
-    });
-}
 
 // ---------------------------------------------------
 // Form doldur
