@@ -81,19 +81,30 @@ function buildRow(p, currentProfile) {
 
     const roleCls = {
         'Yönetici':       'bg-indigo-100 text-indigo-800',
+        'Yonetici':       'bg-indigo-100 text-indigo-800',
         'Teknik Servis':  'bg-blue-100 text-blue-800',
         'Satış Personeli':'bg-purple-100 text-purple-800',
+        'Satis Personeli':'bg-purple-100 text-purple-800',
         'Stajyer':        'bg-gray-100 text-gray-600',
     }[p.role] || 'bg-gray-100 text-gray-600';
 
+    const displayRole = {
+        'Yonetici': 'Yönetici',
+        'Yönetici': 'Yönetici',
+        'Satis Personeli': 'Satış Personeli',
+        'Satış Personeli': 'Satış Personeli',
+        'Teknik Servis': 'Teknik Servis',
+        'Stajyer': 'Stajyer'
+    }[p.role] || p.role;
+
     const roleElement = isSelf
-        ? `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${roleCls}">${escHtml(p.role)}</span>`
+        ? `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${roleCls}">${escHtml(displayRole)}</span>`
         : `
         <select data-action="change-role" data-id="${p.id}"
             class="px-2 py-1 text-xs font-semibold rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            <option value="Yönetici" ${p.role === 'Yönetici' || p.role === 'Yonetici' ? 'selected' : ''}>Yönetici</option>
+            <option value="Yonetici" ${p.role === 'Yönetici' || p.role === 'Yonetici' ? 'selected' : ''}>Yönetici</option>
             <option value="Teknik Servis" ${p.role === 'Teknik Servis' ? 'selected' : ''}>Teknik Servis</option>
-            <option value="Satış Personeli" ${p.role === 'Satış Personeli' ? 'selected' : ''}>Satış Personeli</option>
+            <option value="Satis Personeli" ${p.role === 'Satış Personeli' || p.role === 'Satis Personeli' ? 'selected' : ''}>Satış Personeli</option>
             <option value="Stajyer" ${p.role === 'Stajyer' ? 'selected' : ''}>Stajyer</option>
         </select>
         `;
@@ -165,9 +176,9 @@ function buildModal() {
                             <label class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
                             <select name="role"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="Yönetici">Yönetici</option>
+                                <option value="Yonetici">Yönetici</option>
                                 <option value="Teknik Servis">Teknik Servis</option>
-                                <option value="Satış Personeli">Satış Personeli</option>
+                                <option value="Satis Personeli">Satış Personeli</option>
                                 <option value="Stajyer">Stajyer</option>
                             </select>
                         </div>
