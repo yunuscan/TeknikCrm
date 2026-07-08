@@ -9,7 +9,6 @@ import { showLoading, showToast } from './utils.js';
 
 import { renderDashboard }        from './modules/dashboard.js';
 import { renderCustomers }        from './modules/customers.js';
-import { renderLicenses }         from './modules/licenses.js';
 import { renderTechnicalSupport } from './modules/technical-support.js';
 import { renderTasks }            from './modules/tasks.js';
 import { renderCalendar }         from './modules/calendar.js';
@@ -35,7 +34,6 @@ const ROUTES = {
     dashboard:          { handler: renderDashboard,        roles: [] },
     customers:          { handler: renderCustomers,         roles: [] },
     sales:              { handler: renderSalesPlaceholder,  roles: ['Yonetici', 'Satis Personeli'] },
-    licenses:           { handler: renderLicenses,          roles: [] },
     'technical-support': { handler: renderTechnicalSupport, roles: [] },
     calendar:           { handler: renderCalendar,          roles: [] },
     tasks:              { handler: renderTasks,             roles: [] },
