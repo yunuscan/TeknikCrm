@@ -57,6 +57,17 @@
 
             <!-- Sag: Kullanıcı menusu -->
             <div class="flex items-center gap-3">
+                <!-- AI Asistan Butonu -->
+                <button
+                    id="btn-ai-chat"
+                    type="button"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all select-none"
+                    title="AI Asistan"
+                    aria-label="AI Asistan"
+                >
+                    <img src="images/teknikcrmlogo.png" class="w-4 h-4 object-contain" alt="">
+                    <span class="hidden sm:inline">AI Asistan</span>
+                </button>
                 <!-- Tema Toggle -->
                 <button
                     id="btn-theme-toggle"
@@ -240,10 +251,83 @@
      ============================================================ -->
 <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 min-w-64"></div>
 
+<!-- ============================================================
+     AI ASISTAN CHAT PANELI
+     ============================================================ -->
+<div id="ai-chat-panel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col translate-x-full" style="transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);">
+    <!-- Panel Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm overflow-hidden p-0.5">
+                <img src="images/teknikcrmlogo.png" class="w-full h-full object-contain" alt="AI Logo">
+            </div>
+            <div>
+                <h2 class="text-sm font-bold text-gray-800">AI Asistan</h2>
+                <p class="text-xs text-gray-400">Veritabanınızdaki verileri sorgulayın</p>
+            </div>
+        </div>
+        <button id="btn-ai-chat-close" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Mesaj Alanı -->
+    <div id="ai-chat-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-slate-50">
+        <!-- Karşılama mesajı -->
+        <div class="flex gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-white border border-gray-100 flex-shrink-0 flex items-center justify-center mt-0.5 overflow-hidden p-0.5">
+                <img src="images/teknikcrmlogo.png" class="w-full h-full object-contain" alt="AI">
+            </div>
+            <div class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-gray-100 max-w-xs">
+                <p class="text-sm text-gray-700 leading-relaxed">Merhaba! Ben TeknikCRM AI Asistanıyım. Müşteriler, teknik destek kayıtları, görevler, ziyaretler ve lisanslar hakkında sorular sorabilirsiniz.</p>
+                <p class="text-xs text-gray-400 mt-2">Örnek: "Bugünkü ziyaretleri listele" veya "Açık destek kayıtları kaç tane?"</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Sorular -->
+    <div id="ai-quick-actions" class="px-4 py-2 border-t border-gray-100 bg-white">
+        <p class="text-xs text-gray-400 mb-2 font-medium">Hızlı sorular:</p>
+        <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="ai-quick-btn px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors">Bugünkü ziyaretler</button>
+            <button type="button" class="ai-quick-btn px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors">Açık destek kayıtları</button>
+            <button type="button" class="ai-quick-btn px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors">Bugünkü görevler</button>
+            <button type="button" class="ai-quick-btn px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors">Aktif müşteri sayısı</button>
+        </div>
+    </div>
+
+    <!-- Giriş Alanı -->
+    <div class="px-4 py-3 border-t border-gray-100 bg-white">
+        <div class="flex gap-2 items-end">
+            <textarea
+                id="ai-chat-input"
+                rows="1"
+                placeholder="Sorunuzu yazın..."
+                class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent resize-none bg-slate-50 transition-colors leading-relaxed max-h-32"
+                style="overflow-y: auto;"
+            ></textarea>
+            <button
+                id="btn-ai-chat-send"
+                type="button"
+                class="flex-shrink-0 w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+<!-- AI Chat backdrop -->
+<div id="ai-chat-backdrop" class="hidden fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40"></div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
 <script type="module" src="js/app.js"></script>
+<script type="module" src="js/modules/ai-chat.js"></script>
 <script>
     // Tema toggle mantigi
     (function() {
