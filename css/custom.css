@@ -698,5 +698,56 @@ tbody tr {
 .dark-mode .hover\:bg-gray-50:hover {
     background-color: #334155 !important;
 }
+/* ============================================================
+   EXCEL IMPORT MODULE STYLES
+   ============================================================ */
 
+/* Upload Zone */
+.excel-upload-zone {
+    border: 2px dashed #cbd5e1;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 12px;
+}
+.excel-upload-zone:hover, .excel-upload-zone.dragover {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+.dark-mode .excel-upload-zone {
+    border-color: #334155;
+    background-color: #0f172a;
+}
+.dark-mode .excel-upload-zone:hover, .dark-mode .excel-upload-zone.dragover {
+    border-color: #34d399;
+    background-color: rgba(52, 211, 153, 0.05);
+}
 
+/* Mapping Elements */
+.mapping-select {
+    padding: 0.375rem 2rem 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: 8px;
+    background-position: right 0.5rem center;
+}
+.mapping-required::after {
+    content: " *";
+    color: #ef4444;
+}
+
+/* Progress bar container */
+.progress-bar-container {
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    height: 10px;
+    overflow: hidden;
+}
+.dark-mode .progress-bar-container {
+    background-color: #334155;
+}
+.progress-bar-fill {
+    background-color: #10b981;
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+}
