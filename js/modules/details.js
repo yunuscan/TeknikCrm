@@ -2,7 +2,7 @@ import { supabase } from '../supabase-config.js';
 import {
     escHtml, formatDate, formatDateTime,
     statusBadge, priorityBadge, openModal, closeModal,
-    showToast, translateError, getFeeStatusFromSupport, setFeeStatusInNotes
+    showToast, translateError, getServiceBadgeHTML, formatPrice, buildOptions
 } from '../utils.js';
 
 // ---------------------------------------------------
@@ -177,9 +177,8 @@ export function buildSupportDetailModal() {
                 <div id="detail-modal-body" class="px-6 py-5 space-y-4 text-sm">
                     <!-- Dinamik icerik -->
                 </div>
-                <div class="flex justify-end px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-                    <button type="button" data-close-modal="support-detail-modal"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Kapat</button>
+                <div id="detail-modal-footer" class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                    <!-- Dinamik butonlar -->
                 </div>
             </div>
         </div>
@@ -210,76 +209,240 @@ export async function showSupportDetail(s, profile) {
     const canLog = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
     const isAdmin = ['Yönetici', 'Yonetici'].includes(profile?.role);
 
-    const feeStatus = getFeeStatusFromSupport(s);
-    const feeBadge = feeStatus === 'Ödendi' 
-        ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-green-600 text-white border border-green-700">Ödendi</span>`
-        : (feeStatus === 'Ödenmedi'
-            ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-red-600 text-white border border-red-700">Ödenmedi</span>`
-            : `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500 text-white border border-amber-600">Bekliyor</span>`);
-
     document.getElementById('detail-modal-title').textContent = `Destek #${s.support_number}`;
-    document.getElementById('detail-modal-body').innerHTML = `
-        <div class="grid grid-cols-2 gap-3 text-sm">
-            <div><span class="text-gray-400 text-xs">Müşteri</span><p class="font-medium text-gray-800">${escHtml(customer)}</p></div>
-            <div><span class="text-gray-400 text-xs">Durum</span><div class="mt-0.5">${statusBadge(s.status)}</div></div>
-            <div><span class="text-gray-400 text-xs">Arayan</span><p class="text-gray-700">${escHtml(s.caller_name)} ${s.caller_phone ? `<span class="text-gray-400">(${escHtml(s.caller_phone)})</span>` : ''}</p></div>
-            <div><span class="text-gray-400 text-xs">Başlangıç</span><p class="text-gray-700">${formatDateTime(s.start_time)}</p></div>
-            <div>
-                <span class="text-gray-400 text-xs">Ücret Durumu</span>
-                <div class="mt-0.5">
-                    ${isAdmin ? `
-                        <select id="detail-support-fee-status" class="px-2 py-1 text-xs font-semibold rounded-lg border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <option value="Bekliyor" ${feeStatus === 'Bekliyor' ? 'selected' : ''}>Bekliyor</option>
-                            <option value="Ödendi" ${feeStatus === 'Ödendi' ? 'selected' : ''}>Ödendi</option>
-                            <option value="Ödenmedi" ${feeStatus === 'Ödenmedi' ? 'selected' : ''}>Ödenmedi</option>
-                        </select>
-                    ` : feeBadge}
+
+    if (isAdmin) {
+        // Aktif personelleri dropdown listesi için yükle
+        const { data: staffData } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .eq('is_active', true)
+            .order('full_name');
+        
+        const staffOptions = buildOptions(staffData || [], 'id', staff => staff.full_name, s.assigned_to);
+
+        document.getElementById('detail-modal-body').innerHTML = `
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                    <span class="text-gray-400 text-xs">Müşteri</span>
+                    <p class="font-medium text-gray-800 py-2">${escHtml(customer)}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400 text-xs">Durum</span>
+                    <select id="detail-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Acik" ${s.status === 'Acik' ? 'selected' : ''}>Açık</option>
+                        <option value="Devam Ediyor" ${s.status === 'Devam Ediyor' ? 'selected' : ''}>Devam Ediyor</option>
+                        <option value="Cozuldu" ${s.status === 'Cozuldu' ? 'selected' : ''}>Çözüldü</option>
+                        <option value="Kapali" ${s.status === 'Kapali' ? 'selected' : ''}>Kapalı</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="text-gray-400 text-xs">Arayan Kişi</span>
+                    <input type="text" id="detail-caller-name" value="${escHtml(s.caller_name || '')}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <span class="text-gray-400 text-xs">Arayan Telefon</span>
+                    <input type="text" id="detail-caller-phone" value="${escHtml(s.caller_phone || '')}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <span class="text-gray-400 text-xs">Başlangıç</span>
+                    <p class="font-medium text-gray-800 py-2">${formatDateTime(s.start_time)}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400 text-xs">Atanan Personel</span>
+                    <select id="detail-assigned-to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">-- Seçin --</option>
+                        ${staffOptions}
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <span class="text-gray-400 text-xs">Servis Tipi</span>
+                    <select id="detail-servis-tipi" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Ucretsiz" ${s.servis_tipi === 'Ucretsiz' ? 'selected' : ''}>Ücretsiz</option>
+                        <option value="Ucretli" ${s.servis_tipi === 'Ucretli' ? 'selected' : ''}>Ücretli</option>
+                    </select>
                 </div>
             </div>
-        </div>
-        <div>
-            <p class="text-xs text-gray-400 mb-1">Konu</p>
-            <p class="text-gray-800 font-medium">${escHtml(s.subject)}</p>
-        </div>
-        ${s.description ? `<div><p class="text-xs text-gray-400 mb-1">Açıklama</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.description)}</p></div>` : ''}
-        ${s.resolution ? `<div><p class="text-xs text-gray-400 mb-1">Çözüm</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.resolution)}</p></div>` : ''}
-        <div>
-            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayıtları</p>
-            <div class="space-y-3">${logItems}</div>
-        </div>
-        ${canLog ? `
-        <div class="pt-2 border-t border-gray-100">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Yeni Log Girisi</label>
-            <textarea id="new-log-entry" rows="2" placeholder="Log notu girin..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
-            <button id="btn-add-log" data-support-id="${s.id}"
-                class="mt-2 px-4 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
-                Log Ekle
+            <div id="detail-fee-wrapper" class="fee-dynamic-fields ${s.servis_tipi === 'Ucretli' ? 'is-visible' : ''}">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <span class="text-gray-400 text-xs">Fiyat (₺)</span>
+                        <input type="number" id="detail-fiyat" step="0.01" min="0" placeholder="0,00" value="${s.fiyat != null ? s.fiyat : ''}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs">Ödeme Durumu</span>
+                        <select id="detail-odeme-durumu" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="Odenmedi" ${s.odeme_durumu !== 'Odendi' ? 'selected' : ''}>Ödenmedi</option>
+                            <option value="Odendi" ${s.odeme_durumu === 'Odendi' ? 'selected' : ''}>Ödendi</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="text-gray-400 text-xs">Konu</span>
+                <input type="text" id="detail-subject" value="${escHtml(s.subject || '')}"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <span class="text-gray-400 text-xs">Açıklama</span>
+                <textarea id="detail-description" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">${escHtml(s.description || '')}</textarea>
+            </div>
+            <div>
+                <span class="text-gray-400 text-xs">Çözüm Detayı</span>
+                <textarea id="detail-resolution" rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">${escHtml(s.resolution || '')}</textarea>
+            </div>
+            <div>
+                <span class="text-gray-400 text-xs">Notlar</span>
+                <textarea id="detail-notes" rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">${escHtml(s.notes || '')}</textarea>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayıtları</p>
+                <div class="space-y-3">${logItems}</div>
+            </div>
+            ${canLog ? `
+            <div class="pt-2 border-t border-gray-100">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Yeni Log Girisi</label>
+                <textarea id="new-log-entry" rows="2" placeholder="Log notu girin..."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                <button id="btn-add-log" data-support-id="${s.id}"
+                    class="mt-2 px-4 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                    Log Ekle
+                </button>
+            </div>` : ''}
+        `;
+
+        document.getElementById('detail-modal-footer').innerHTML = `
+            <button type="button" data-close-modal="support-detail-modal"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">İptal</button>
+            <button id="btn-save-detail-changes" type="button"
+                class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                Değişiklikleri Kaydet
             </button>
-        </div>` : ''}
-    `;
+        `;
+
+        // Servis tipi degisim dinleyicisi
+        const detailServisTipi = document.getElementById('detail-servis-tipi');
+        const detailFeeWrapper = document.getElementById('detail-fee-wrapper');
+        if (detailServisTipi && detailFeeWrapper) {
+            detailServisTipi.addEventListener('change', () => {
+                if (detailServisTipi.value === 'Ucretli') {
+                    detailFeeWrapper.classList.add('is-visible');
+                } else {
+                    detailFeeWrapper.classList.remove('is-visible');
+                    const f = document.getElementById('detail-fiyat');
+                    const o = document.getElementById('detail-odeme-durumu');
+                    if (f) f.value = '';
+                    if (o) o.value = 'Odenmedi';
+                }
+            });
+        }
+
+        // Kaydet butonu dinleyicisi
+        const saveChangesBtn = document.getElementById('btn-save-detail-changes');
+        if (saveChangesBtn) {
+            saveChangesBtn.onclick = async () => {
+                saveChangesBtn.disabled = true;
+                saveChangesBtn.textContent = 'Kaydediliyor...';
+
+                const status = document.getElementById('detail-status').value;
+                const caller_name = document.getElementById('detail-caller-name').value.trim() || null;
+                const caller_phone = document.getElementById('detail-caller-phone').value.trim() || null;
+                const assigned_to = document.getElementById('detail-assigned-to').value || null;
+                const servisTipi = document.getElementById('detail-servis-tipi').value;
+                const isUcretli = servisTipi === 'Ucretli';
+
+                const payload = {
+                    status,
+                    caller_name,
+                    caller_phone,
+                    assigned_to,
+                    servis_tipi: servisTipi,
+                    fiyat: isUcretli ? (parseFloat(document.getElementById('detail-fiyat').value) || null) : null,
+                    odeme_durumu: isUcretli ? (document.getElementById('detail-odeme-durumu').value || 'Odenmedi') : null,
+                    subject: document.getElementById('detail-subject').value.trim() || null,
+                    description: document.getElementById('detail-description').value.trim() || null,
+                    resolution: document.getElementById('detail-resolution').value.trim() || null,
+                    notes: document.getElementById('detail-notes').value.trim() || null
+                };
+
+                if (!payload.caller_name || !payload.subject) {
+                    showToast('Arayan kisi ve konu zorunludur.', 'error');
+                    saveChangesBtn.disabled = false;
+                    saveChangesBtn.textContent = 'Değişiklikleri Kaydet';
+                    return;
+                }
+
+                if (['Cozuldu', 'Kapali'].includes(payload.status) && !s.end_time) {
+                    payload.end_time = new Date().toISOString();
+                }
+
+                try {
+                    const { error } = await supabase
+                        .from('technical_supports')
+                        .update(payload)
+                        .eq('id', s.id);
+                    
+                    if (error) throw error;
+                    showToast('Değişiklikler başarıyla kaydedildi.', 'success');
+                    closeModal('support-detail-modal');
+                    window.dispatchEvent(new CustomEvent('support-updated'));
+                } catch (err) {
+                    showToast(translateError(err), 'error');
+                    saveChangesBtn.disabled = false;
+                    saveChangesBtn.textContent = 'Değişiklikleri Kaydet';
+                }
+            };
+        }
+
+    } else {
+        const serviceBadge = getServiceBadgeHTML(s);
+
+        document.getElementById('detail-modal-body').innerHTML = `
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div><span class="text-gray-400 text-xs">Müşteri</span><p class="font-medium text-gray-800">${escHtml(customer)}</p></div>
+                <div><span class="text-gray-400 text-xs">Durum</span><div class="mt-0.5">${statusBadge(s.status)}</div></div>
+                <div><span class="text-gray-400 text-xs">Arayan</span><p class="text-gray-700">${escHtml(s.caller_name)} ${s.caller_phone ? `<span class="text-gray-400">(${escHtml(s.caller_phone)})</span>` : ''}</p></div>
+                <div><span class="text-gray-400 text-xs">Başlangıç</span><p class="text-gray-700">${formatDateTime(s.start_time)}</p></div>
+                <div class="col-span-2">
+                    <span class="text-gray-400 text-xs">Servis Bilgisi</span>
+                    <div class="mt-1">${serviceBadge}</div>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 mb-1">Konu</p>
+                <p class="text-gray-800 font-medium">${escHtml(s.subject)}</p>
+            </div>
+            ${s.description ? `<div><p class="text-xs text-gray-400 mb-1">Açıklama</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.description)}</p></div>` : ''}
+            ${s.resolution ? `<div><p class="text-xs text-gray-400 mb-1">Çözüm</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.resolution)}</p></div>` : ''}
+            <div>
+                <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayıtları</p>
+                <div class="space-y-3">${logItems}</div>
+            </div>
+            ${canLog ? `
+            <div class="pt-2 border-t border-gray-100">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Yeni Log Girisi</label>
+                <textarea id="new-log-entry" rows="2" placeholder="Log notu girin..."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                <button id="btn-add-log" data-support-id="${s.id}"
+                    class="mt-2 px-4 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                    Log Ekle
+                </button>
+            </div>` : ''}
+        `;
+
+        document.getElementById('detail-modal-footer').innerHTML = `
+            <button type="button" data-close-modal="support-detail-modal"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Kapat</button>
+        `;
+    }
 
     openModal('support-detail-modal');
-
-    const feeSelect = document.getElementById('detail-support-fee-status');
-    if (feeSelect) {
-        feeSelect.onchange = async () => {
-            const newFee = feeSelect.value;
-            const newNotes = setFeeStatusInNotes(s.notes, newFee);
-            s.notes = newNotes;
-            const { error } = await supabase
-                .from('technical_supports')
-                .update({ notes: newNotes })
-                .eq('id', s.id);
-            if (error) {
-                showToast(translateError(error), 'error');
-                return;
-            }
-            showToast('Ücret durumu güncellendi.', 'success');
-            await showSupportDetail(s, profile);
-            window.dispatchEvent(new CustomEvent('support-updated'));
-        };
-    }
 
     // Add log event listener
     const addLogBtn = document.getElementById('btn-add-log');
@@ -300,3 +463,4 @@ export async function showSupportDetail(s, profile) {
         };
     }
 }
+

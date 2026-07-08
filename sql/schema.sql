@@ -31,8 +31,8 @@ CREATE TABLE public.profiles (
     full_name   TEXT        NOT NULL,
     email       TEXT        NOT NULL,
     phone       TEXT,
-    role        TEXT        NOT NULL DEFAULT 'Misafir'
-                            CHECK (role IN ('Yonetici', 'Teknik Servis', 'Satis Personeli', 'Misafir')),
+    role        TEXT        NOT NULL DEFAULT 'Stajyer'
+                            CHECK (role IN ('Yonetici', 'Teknik Servis', 'Satis Personeli', 'Stajyer')),
     is_active   BOOLEAN     NOT NULL DEFAULT TRUE,
     avatar_url  TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -156,6 +156,11 @@ CREATE TABLE public.technical_supports (
     status         TEXT        NOT NULL DEFAULT 'Acik'
                                CHECK (status IN ('Acik', 'Devam Ediyor', 'Cozuldu', 'Kapali')),
     notes          TEXT,
+    servis_tipi    TEXT        NOT NULL DEFAULT 'Ucretsiz'
+                               CHECK (servis_tipi IN ('Ucretli', 'Ucretsiz')),
+    fiyat          NUMERIC(10, 2) DEFAULT NULL,
+    odeme_durumu   TEXT        DEFAULT NULL
+                               CHECK (odeme_durumu IS NULL OR odeme_durumu IN ('Odendi', 'Odenmedi')),
     created_by     UUID        REFERENCES public.profiles(id) ON DELETE SET NULL,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -269,7 +274,7 @@ BEGIN
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
         NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'role', 'Misafir')
+        COALESCE(NEW.raw_user_meta_data->>'role', 'Stajyer')
     )
     ON CONFLICT (id) DO NOTHING;
     RETURN NEW;

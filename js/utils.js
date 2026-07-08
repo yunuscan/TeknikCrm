@@ -114,11 +114,21 @@ export function statusBadge(status) {
         'Acik':         'badge-open',
         'Devam Ediyor': 'badge-medium',
         'Çözüldü':      'badge-completed',
+        'Cozuldu':      'badge-completed',
         'Kapali':       'badge-default',
         'Planlandı':    'badge-planned',
+        'Planlandi':    'badge-planned',
+    };
+    // DB'deki ASCII değerleri kullanıcıya Türkçe göster
+    const displayMap = {
+        'Acik':         'Açık',
+        'Cozuldu':      'Çözüldü',
+        'Kapali':       'Kapalı',
+        'Planlandi':    'Planlandı',
     };
     const cls = map[status] || 'badge-default';
-    return `<span class="badge-status ${cls}">${escHtml(status)}</span>`;
+    const label = displayMap[status] || status;
+    return `<span class="badge-status ${cls}">${escHtml(label)}</span>`;
 }
 
 export function priorityBadge(priority) {
@@ -188,20 +198,40 @@ export function translateError(err) {
 }
 
 // ---------------------------------------------------
-// Ücret Durumu Yardımcı Fonksiyonları
+// Fiyat formatlama
 // ---------------------------------------------------
 
-export function getFeeStatusFromSupport(support) {
-    const notes = support.notes || '';
-    if (notes.includes('[FEE:Ödendi]')) return 'Ödendi';
-    if (notes.includes('[FEE:Ödenmedi]')) return 'Ödenmedi';
-    if (notes.includes('[FEE:Bekliyor]')) return 'Bekliyor';
-    return support.support_number % 3 === 0 ? 'Ödendi' : (support.support_number % 3 === 1 ? 'Ödenmedi' : 'Bekliyor');
+export function formatPrice(amount) {
+    if (amount === null || amount === undefined) return '';
+    return Number(amount).toLocaleString('tr-TR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    }) + '₺';
 }
 
-export function setFeeStatusInNotes(notesText, feeStatus) {
-    let cleanNotes = (notesText || '')
-        .replace(/\[FEE:(Ödendi|Ödenmedi|Bekliyor)\]/g, '')
-        .trim();
-    return `[FEE:${feeStatus}] ${cleanNotes}`.trim();
+// ---------------------------------------------------
+// Servis Tipi & Ücret Rozeti HTML Üretimi
+// ---------------------------------------------------
+
+/**
+ * Destek kaydının servis_tipi, fiyat ve odeme_durumu
+ * alanlarından şık bir rozet kombinasyonu üretir.
+ *
+ * Ücretsiz  → tek gri rozet
+ * Ücretli   → amber rozet + fiyat etiketi + ödeme durumu rozeti
+ */
+export function getServiceBadgeHTML(s) {
+    if (s.servis_tipi === 'Ucretli') {
+        const priceStr = s.fiyat != null ? formatPrice(s.fiyat) : '';
+        const feeBadge = s.odeme_durumu === 'Odendi'
+            ? `<span class="badge-fee-paid">Ödendi</span>`
+            : `<span class="badge-fee-unpaid">Ödenmedi</span>`;
+        return `<span class="service-info-group">
+            <span class="badge-service-paid">Ücretli</span>
+            ${priceStr ? `<span class="service-price-tag">${priceStr}</span>` : ''}
+            ${feeBadge}
+        </span>`;
+    }
+    return `<span class="badge-service-free">Ücretsiz</span>`;
 }
+

@@ -1,7 +1,7 @@
 import { supabase } from '../supabase-config.js';
 import {
     setContent, escHtml, formatDate, formatDateTime,
-    statusBadge, priorityBadge, closeModal, getFeeStatusFromSupport
+    statusBadge, priorityBadge, closeModal, getServiceBadgeHTML
 } from '../utils.js';
 import {
     buildTaskDetailModal, showTaskDetail,
@@ -311,12 +311,7 @@ function buildSupportCard(support) {
         ? formatDateTime(support.start_time)
         : '-';
 
-    const feeStatus = getFeeStatusFromSupport(support);
-    const feeBadge = feeStatus === 'Ödendi' 
-        ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-600 text-white border border-green-700">Ödendi</span>`
-        : (feeStatus === 'Ödenmedi'
-            ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-600 text-white border border-red-700">Ödenmedi</span>`
-            : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white border border-amber-600">Bekliyor</span>`);
+    const serviceBadge = getServiceBadgeHTML(support);
 
     return `
         <div class="bg-slate-50 rounded-xl border border-slate-100 p-3.5 hover:bg-white hover:shadow-md hover:border-orange-200 transition-all cursor-pointer group flex flex-col gap-2.5" data-type="support" data-id="${support.id}">
@@ -330,7 +325,7 @@ function buildSupportCard(support) {
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
                 <span class="text-[11px] text-gray-400 font-medium">${timeStr}</span>
-                ${feeBadge}
+                ${serviceBadge}
             </div>
         </div>
     `;

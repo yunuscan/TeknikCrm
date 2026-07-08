@@ -161,6 +161,85 @@ tbody tr {
     border-color: #e2e8f0;
 }
 
+/* --- Servis Tipi & Ücret Rozetleri --- */
+.badge-service-free {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.625rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    background-color: #f0f4f8;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    letter-spacing: 0.02em;
+}
+
+.badge-service-paid {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.2rem 0.625rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.service-price-tag {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+
+.badge-fee-paid {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.675rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+.badge-fee-unpaid {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.675rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* Servis bilgisi sarmalayıcı */
+.service-info-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+}
+
+/* Dinamik alan geçiş animasyonu */
+.fee-dynamic-fields {
+    overflow: hidden;
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+    max-height: 0;
+    opacity: 0;
+}
+
+.fee-dynamic-fields.is-visible {
+    max-height: 200px;
+    opacity: 1;
+}
+
 /* Baskı stilleri */
 @media print {
     #sidebar,
@@ -434,6 +513,38 @@ tbody tr {
     background-color: #1e293b;
     border-color: #334155;
     color: #e2e8f0;
+}
+
+/* --- Raporlar bilgi kutusu (koyu mod) --- */
+.dark-mode .bg-blue-50 {
+    background-color: #181825 !important;
+    border-color: #313244 !important;
+    color: #cdd6f4 !important;
+}
+
+/* --- Servis Tipi & Ücret Rozetleri (Koyu Mod) --- */
+.dark-mode .badge-service-free {
+    background-color: rgba(100, 116, 139, 0.2) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(100, 116, 139, 0.35) !important;
+}
+.dark-mode .badge-service-paid {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+}
+.dark-mode .badge-fee-paid {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+}
+.dark-mode .badge-fee-unpaid {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.dark-mode .service-price-tag {
+    color: #e2e8f0 !important;
 }
 
 /* --- Emerald / Orange / Indigo Butonlar (Koyu Mod) --- */

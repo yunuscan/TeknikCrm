@@ -1,7 +1,7 @@
 import { supabase }    from '../supabase-config.js';
 import {
-    setContent, showToast, escHtml, formatDateTime,
-    statusBadge, openModal, closeModal, buildOptions, translateError, setPageTitle, getFeeStatusFromSupport,
+    setContent, showToast, escHtml, formatDateTime, formatPrice,
+    statusBadge, openModal, closeModal, buildOptions, translateError, setPageTitle,
 } from '../utils.js';
 import { buildSupportDetailModal, showSupportDetail } from './details.js';
 
@@ -45,7 +45,7 @@ export async function renderTechnicalSupport({ profile }) {
 function buildHTML(supports, customers, staff, canWrite, profile) {
     const rows = supports.length
         ? supports.map(s => buildRow(s, canWrite, profile)).join('')
-        : `<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-gray-400">Destek kaydi bulunamadi.</td></tr>`;
+        : `<tr><td colspan="9" class="px-5 py-10 text-center text-sm text-gray-400">Destek kaydi bulunamadi.</td></tr>`;
 
     const custOptions  = buildOptions(customers, 'id', c => c.company_name || `${c.first_name} ${c.last_name}`);
     const staffOptions = buildOptions(staff, 'id', s => s.full_name);
@@ -75,7 +75,7 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
                 <button data-filter-status="" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 bg-gray-100">Tümü</button>
                 <button data-filter-status="Acik" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50">Acik</button>
                 <button data-filter-status="Devam Ediyor" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-orange-200 text-orange-700 hover:bg-orange-50">Devam Ediyor</button>
-                <button data-filter-status="Çözüldü" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Çözüldü</button>
+                <button data-filter-status="Cozuldu" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Çözüldü</button>
                 <button data-filter-status="Kapali" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50">Kapali</button>
             </div>
 
@@ -91,7 +91,8 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
                                 <th class="px-5 py-3 font-medium">Arayan</th>
                                 <th class="px-5 py-3 font-medium">Atanan</th>
                                 <th class="px-5 py-3 font-medium">Başlangıç</th>
-                                <th class="px-5 py-3 font-medium">Ücret Durumu</th>
+                                <th class="px-5 py-3 font-medium">Fiyat</th>
+                                <th class="px-5 py-3 font-medium">Ödeme</th>
                                 <th class="px-5 py-3 font-medium">Durum</th>
                                 ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
                             </tr>
@@ -130,12 +131,17 @@ function buildRow(s, canWrite, profile) {
         <div><button data-action="detail" data-id="${s.id}"
             class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Detay</button></div>`;
 
-    const feeStatus = getFeeStatusFromSupport(s);
-    const feeBadge = feeStatus === 'Ödendi' 
-        ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-green-600 text-white border border-green-700">Ödendi</span>`
-        : (feeStatus === 'Ödenmedi'
-            ? `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-red-600 text-white border border-red-700">Ödenmedi</span>`
-            : `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500 text-white border border-amber-600">Bekliyor</span>`);
+    // Fiyat sütunu
+    const priceCell = s.servis_tipi === 'Ucretli'
+        ? `<span class="text-sm font-semibold text-gray-700">${formatPrice(s.fiyat)}</span>`
+        : `<span class="badge-service-free">Ücretsiz</span>`;
+
+    // Ödeme durumu sütunu
+    const paymentCell = s.servis_tipi === 'Ucretli'
+        ? (s.odeme_durumu === 'Odendi'
+            ? `<span class="badge-fee-paid">Ödendi</span>`
+            : `<span class="badge-fee-unpaid">Ödenmedi</span>`)
+        : `<span class="text-gray-300 text-sm select-none">—</span>`;
 
     return `
         <tr class="cursor-pointer hover:bg-slate-50 transition-colors" data-status="${escHtml(s.status)}" data-id="${s.id}">
@@ -147,7 +153,8 @@ function buildRow(s, canWrite, profile) {
             <td class="px-5 py-3 text-gray-600">${escHtml(s.caller_name)}</td>
             <td class="px-5 py-3 text-gray-600">${assignee}</td>
             <td class="px-5 py-3 text-gray-500 text-xs">${formatDateTime(s.start_time)}</td>
-            <td class="px-5 py-3">${feeBadge}</td>
+            <td class="px-5 py-3"><div class="flex items-center h-full">${priceCell}</div></td>
+            <td class="px-5 py-3"><div class="flex items-center h-full">${paymentCell}</div></td>
             <td class="px-5 py-3">${statusBadge(s.status)}</td>
             ${canWrite ? `<td class="px-5 py-3">${actions}</td>` : ''}
         </tr>
@@ -218,11 +225,40 @@ function buildNewSupportModal(custOptions, staffOptions) {
                             <label class="block text-sm font-medium text-gray-700 mb-1">Durum</label>
                             <select name="status"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="Acik">Acik</option>
+                                <option value="Acik">Açık</option>
                                 <option value="Devam Ediyor">Devam Ediyor</option>
-                                <option value="Çözüldü">Çözüldü</option>
-                                <option value="Kapali">Kapali</option>
+                                <option value="Cozuldu">Çözüldü</option>
+                                <option value="Kapali">Kapalı</option>
                             </select>
+                        </div>
+
+                        <!-- Servis Tipi -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Servis Tipi</label>
+                            <select name="servis_tipi"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Ucretsiz">Ücretsiz</option>
+                                <option value="Ucretli">Ücretli</option>
+                            </select>
+                        </div>
+
+                        <!-- Dinamik Ücret Alanları (Sadece Ücretli seçildiğinde görünür) -->
+                        <div id="fee-dynamic-wrapper" class="sm:col-span-2 fee-dynamic-fields">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Fiyat (₺)</label>
+                                    <input type="number" name="fiyat" step="0.01" min="0" placeholder="0,00"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Ödeme Durumu</label>
+                                    <select name="odeme_durumu"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        <option value="Odenmedi">Ödenmedi</option>
+                                        <option value="Odendi">Ödendi</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="sm:col-span-2">
@@ -261,12 +297,19 @@ function bindEvents(profile, customers, staff, supports) {
         document.getElementById('support-modal-title').textContent = 'Yeni Destek Kaydi';
         document.getElementById('support-modal-form').dataset.editId = '';
         document.getElementById('support-modal-form').reset();
+        toggleFeeFields(); // Formu sıfırladığında alanları gizle
         openModal('support-modal');
     });
 
     document.querySelectorAll('[data-close-modal]').forEach(btn => {
         btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
     });
+
+    // Servis Tipi değişim dinleyicisi
+    const servisTipiSelect = document.querySelector('#support-modal-form [name="servis_tipi"]');
+    if (servisTipiSelect) {
+        servisTipiSelect.addEventListener('change', () => toggleFeeFields());
+    }
 
     // Durum filtresi
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -320,6 +363,28 @@ function bindEvents(profile, customers, staff, supports) {
 }
 
 
+// ---------------------------------------------------
+// Dinamik alan göster/gizle
+// ---------------------------------------------------
+
+function toggleFeeFields() {
+    const form = document.getElementById('support-modal-form');
+    if (!form) return;
+    const servisTipi = form.querySelector('[name="servis_tipi"]')?.value;
+    const wrapper = document.getElementById('fee-dynamic-wrapper');
+    if (!wrapper) return;
+
+    if (servisTipi === 'Ucretli') {
+        wrapper.classList.add('is-visible');
+    } else {
+        wrapper.classList.remove('is-visible');
+        // Ücretsiz seçildiğinde alanları temizle
+        const fiyatInput = form.querySelector('[name="fiyat"]');
+        const odemeSelect = form.querySelector('[name="odeme_durumu"]');
+        if (fiyatInput) fiyatInput.value = '';
+        if (odemeSelect) odemeSelect.value = 'Odenmedi';
+    }
+}
 
 // ---------------------------------------------------
 // Form doldur
@@ -335,6 +400,14 @@ function fillSupportForm(form, s) {
     form.querySelector('[name="status"]').value       = s.status       || 'Acik';
     form.querySelector('[name="resolution"]').value   = s.resolution   || '';
     form.querySelector('[name="notes"]').value        = s.notes        || '';
+
+    // Finansal alanlar
+    form.querySelector('[name="servis_tipi"]').value  = s.servis_tipi  || 'Ucretsiz';
+    form.querySelector('[name="fiyat"]').value        = s.fiyat != null ? s.fiyat : '';
+    form.querySelector('[name="odeme_durumu"]').value = s.odeme_durumu || 'Odenmedi';
+
+    // Dinamik alanları duruma göre göster/gizle
+    toggleFeeFields();
 }
 
 // ---------------------------------------------------
@@ -349,16 +422,22 @@ async function saveSupport(form, profile) {
     const editId = form.dataset.editId;
     const fd     = new FormData(form);
 
+    const servisTipi = fd.get('servis_tipi') || 'Ucretsiz';
+    const isUcretli  = servisTipi === 'Ucretli';
+
     const payload = {
-        customer_id:  fd.get('customer_id')        || null,
-        caller_name:  fd.get('caller_name')?.trim() || null,
-        caller_phone: fd.get('caller_phone')?.trim() || null,
-        subject:      fd.get('subject')?.trim()     || null,
-        description:  fd.get('description')?.trim() || null,
-        assigned_to:  fd.get('assigned_to')         || null,
-        status:       fd.get('status')              || 'Acik',
-        resolution:   fd.get('resolution')?.trim()  || null,
-        notes:        fd.get('notes')?.trim()        || null,
+        customer_id:   fd.get('customer_id')        || null,
+        caller_name:   fd.get('caller_name')?.trim() || null,
+        caller_phone:  fd.get('caller_phone')?.trim() || null,
+        subject:       fd.get('subject')?.trim()     || null,
+        description:   fd.get('description')?.trim() || null,
+        assigned_to:   fd.get('assigned_to')         || null,
+        status:        fd.get('status')              || 'Acik',
+        resolution:    fd.get('resolution')?.trim()  || null,
+        notes:         fd.get('notes')?.trim()        || null,
+        servis_tipi:   servisTipi,
+        fiyat:         isUcretli ? (parseFloat(fd.get('fiyat')) || null) : null,
+        odeme_durumu:  isUcretli ? (fd.get('odeme_durumu') || 'Odenmedi') : null,
     };
 
     if (!payload.customer_id || !payload.caller_name || !payload.subject) {
@@ -368,8 +447,8 @@ async function saveSupport(form, profile) {
         return;
     }
 
-    // Durum Çözüldü/Kapali ise bitis zamanini ayarla
-    if (['Çözüldü', 'Kapali'].includes(payload.status) && !editId) {
+    // Durum Cozuldu/Kapali ise bitis zamanini ayarla
+    if (['Cozuldu', 'Kapali'].includes(payload.status) && !editId) {
         payload.end_time = new Date().toISOString();
     }
 

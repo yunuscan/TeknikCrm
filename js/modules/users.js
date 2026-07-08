@@ -83,7 +83,7 @@ function buildRow(p, currentProfile) {
         'Yönetici':       'bg-indigo-100 text-indigo-800',
         'Teknik Servis':  'bg-blue-100 text-blue-800',
         'Satış Personeli':'bg-purple-100 text-purple-800',
-        'Misafir':        'bg-gray-100 text-gray-600',
+        'Stajyer':        'bg-gray-100 text-gray-600',
     }[p.role] || 'bg-gray-100 text-gray-600';
 
     const roleElement = isSelf
@@ -94,7 +94,7 @@ function buildRow(p, currentProfile) {
             <option value="Yönetici" ${p.role === 'Yönetici' || p.role === 'Yonetici' ? 'selected' : ''}>Yönetici</option>
             <option value="Teknik Servis" ${p.role === 'Teknik Servis' ? 'selected' : ''}>Teknik Servis</option>
             <option value="Satış Personeli" ${p.role === 'Satış Personeli' ? 'selected' : ''}>Satış Personeli</option>
-            <option value="Misafir" ${p.role === 'Misafir' ? 'selected' : ''}>Misafir</option>
+            <option value="Stajyer" ${p.role === 'Stajyer' ? 'selected' : ''}>Stajyer</option>
         </select>
         `;
 
@@ -168,7 +168,7 @@ function buildModal() {
                                 <option value="Yönetici">Yönetici</option>
                                 <option value="Teknik Servis">Teknik Servis</option>
                                 <option value="Satış Personeli">Satış Personeli</option>
-                                <option value="Misafir">Misafir</option>
+                                <option value="Stajyer">Stajyer</option>
                             </select>
                         </div>
 
@@ -207,7 +207,7 @@ function bindEvents(profile, profiles) {
             document.getElementById('user-modal-form').querySelector('[name="phone"]').value     = user.phone    || '';
             
             const roleSelect = document.getElementById('user-modal-form').querySelector('[name="role"]');
-            roleSelect.value = user.role || 'Misafir';
+            roleSelect.value = user.role || 'Stajyer';
             if (user.id === profile.id) {
                 roleSelect.disabled = true;
             } else {
@@ -272,7 +272,7 @@ function bindEvents(profile, profiles) {
 
         const roleSelect = form.querySelector('[name="role"]');
         if (!roleSelect.disabled) {
-            payload.role = fd.get('role') || 'Misafir';
+            payload.role = fd.get('role') || 'Stajyer';
         }
 
         const { error } = await supabase.from('profiles').update(payload).eq('id', id);
