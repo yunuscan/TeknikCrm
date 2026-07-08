@@ -301,6 +301,52 @@ export async function showSupportDetail(s, profile) {
                 <textarea id="detail-notes" rows="2"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">${escHtml(s.notes || '')}</textarea>
             </div>
+            <!-- AI Destek Asistanı Bölümü -->
+            <div class="pt-4 border-t border-gray-100">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5 select-none">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21m0 0l-.813-5.096L3 15.094l5.096-.813M9 21l8.188-8.188a2.828 2.828 0 10-4-4L5 17m14-5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                        </svg>
+                        AI Destek Asistanı (Gemini)
+                    </h4>
+                    <button id="btn-ai-analyze" data-support-id="${s.id}" type="button"
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100 font-bold text-xs rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        🤖 AI ile Analiz Et
+                    </button>
+                </div>
+                <div id="ai-analysis-container" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3.5 mt-2">
+                    <div id="ai-loader" class="hidden flex flex-col items-center justify-center py-6 gap-2">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <p class="text-xs text-gray-500 font-medium">Gemini bilet detaylarını analiz ediyor...</p>
+                    </div>
+                    <div id="ai-content" class="hidden space-y-3">
+                        <div>
+                            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">AI Özet</span>
+                            <p id="ai-summary-text" class="text-gray-700 text-sm mt-1 whitespace-pre-wrap leading-relaxed bg-white border border-slate-100 rounded-lg p-3"></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Önerilen Öncelik:</span>
+                            <span id="ai-priority-badge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-800 border"></span>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Otomatik Yanıt Taslağı</span>
+                                <button id="btn-copy-ai-draft" type="button"
+                                    class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold focus:outline-none flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                                    </svg>
+                                    Taslağı Kopyala
+                                </button>
+                            </div>
+                            <textarea id="ai-draft-textarea" readonly rows="4"
+                                class="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg text-sm focus:outline-none resize-none leading-relaxed text-gray-700"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayıtları</p>
                 <div class="space-y-3">${logItems}</div>
@@ -420,6 +466,52 @@ export async function showSupportDetail(s, profile) {
             </div>
             ${s.description ? `<div><p class="text-xs text-gray-400 mb-1">Açıklama</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.description)}</p></div>` : ''}
             ${s.resolution ? `<div><p class="text-xs text-gray-400 mb-1">Çözüm</p><p class="text-gray-700 text-sm whitespace-pre-wrap">${escHtml(s.resolution)}</p></div>` : ''}
+            <!-- AI Destek Asistanı Bölümü -->
+            <div class="pt-4 border-t border-gray-100">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5 select-none">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21m0 0l-.813-5.096L3 15.094l5.096-.813M9 21l8.188-8.188a2.828 2.828 0 10-4-4L5 17m14-5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                        </svg>
+                        AI Destek Asistanı (Gemini)
+                    </h4>
+                    <button id="btn-ai-analyze" data-support-id="${s.id}" type="button"
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100 font-bold text-xs rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        🤖 AI ile Analiz Et
+                    </button>
+                </div>
+                <div id="ai-analysis-container" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3.5 mt-2">
+                    <div id="ai-loader" class="hidden flex flex-col items-center justify-center py-6 gap-2">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <p class="text-xs text-gray-500 font-medium">Gemini bilet detaylarını analiz ediyor...</p>
+                    </div>
+                    <div id="ai-content" class="hidden space-y-3">
+                        <div>
+                            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">AI Özet</span>
+                            <p id="ai-summary-text" class="text-gray-700 text-sm mt-1 whitespace-pre-wrap leading-relaxed bg-white border border-slate-100 rounded-lg p-3"></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Önerilen Öncelik:</span>
+                            <span id="ai-priority-badge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-800 border"></span>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Otomatik Yanıt Taslağı</span>
+                                <button id="btn-copy-ai-draft" type="button"
+                                    class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold focus:outline-none flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                                    </svg>
+                                    Taslağı Kopyala
+                                </button>
+                            </div>
+                            <textarea id="ai-draft-textarea" readonly rows="4"
+                                class="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg text-sm focus:outline-none resize-none leading-relaxed text-gray-700"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wide">Log Kayıtları</p>
                 <div class="space-y-3">${logItems}</div>
@@ -460,6 +552,80 @@ export async function showSupportDetail(s, profile) {
             showToast('Log eklendi.', 'success');
             document.getElementById('new-log-entry').value = '';
             await showSupportDetail(s, profile);
+        };
+    }
+
+    // AI Analysis Event Listener
+    const aiAnalyzeBtn = document.getElementById('btn-ai-analyze');
+    if (aiAnalyzeBtn) {
+        aiAnalyzeBtn.onclick = async () => {
+            const ticketId = aiAnalyzeBtn.dataset.supportId;
+            const container = document.getElementById('ai-analysis-container');
+            const loader = document.getElementById('ai-loader');
+            const content = document.getElementById('ai-content');
+
+            container.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            content.classList.add('hidden');
+            aiAnalyzeBtn.disabled = true;
+            aiAnalyzeBtn.textContent = '🤖 Çözümleniyor...';
+
+            try {
+                const response = await fetch('/api/summarize-ticket', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ticket_id: ticketId }),
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || 'API hatası oluştu.');
+                }
+
+                const data = await response.json();
+
+                // Fill UI
+                document.getElementById('ai-summary-text').textContent = data.ozet || 'Özet bulunmuyor.';
+                
+                // Priority Badge Color Styling
+                const badge = document.getElementById('ai-priority-badge');
+                badge.textContent = data.oncelik || 'Orta';
+                
+                const priorityStyles = {
+                    'Düşük': 'bg-blue-50 text-blue-700 border-blue-200',
+                    'Orta': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                    'Yüksek': 'bg-orange-50 text-orange-700 border-orange-200',
+                    'Kritik': 'bg-red-50 text-red-700 border-red-200',
+                };
+                
+                badge.className = `px-2.5 py-0.5 text-xs font-semibold rounded-full border ${priorityStyles[data.oncelik] || priorityStyles['Orta']}`;
+                
+                document.getElementById('ai-draft-textarea').value = data.yanit_taslagi || '';
+
+                loader.classList.add('hidden');
+                content.classList.remove('hidden');
+            } catch (err) {
+                console.error(err);
+                showToast('AI analizi başarısız oldu: ' + err.message, 'error');
+                container.classList.add('hidden');
+            } finally {
+                aiAnalyzeBtn.disabled = false;
+                aiAnalyzeBtn.textContent = '🤖 AI ile Analiz Et';
+            }
+        };
+    }
+
+    // Copy AI Draft Event Listener
+    const copyDraftBtn = document.getElementById('btn-copy-ai-draft');
+    if (copyDraftBtn) {
+        copyDraftBtn.onclick = () => {
+            const textarea = document.getElementById('ai-draft-textarea');
+            if (textarea && textarea.value) {
+                navigator.clipboard.writeText(textarea.value);
+                showToast('Otomatik yanıt taslağı panoya kopyalandı.', 'success');
+            }
         };
     }
 }

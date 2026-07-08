@@ -154,24 +154,8 @@ function populateNavbar(profile) {
 // ---------------------------------------------------
 
 function initSidebarToggle() {
-    const btn     = document.getElementById('btn-toggle-sidebar');
-    const sidebar = document.getElementById('sidebar');
-
-    btn.addEventListener('click', () => {
-        sidebar.classList.toggle('-translate-x-full');
-    });
-
-    // Kucuk ekranda sidebar disina tiklayinca kapat
-    document.addEventListener('click', e => {
-        if (
-            window.innerWidth < 640 &&
-            !sidebar.contains(e.target) &&
-            !btn.contains(e.target) &&
-            !sidebar.classList.contains('-translate-x-full')
-        ) {
-            sidebar.classList.add('-translate-x-full');
-        }
-    });
+    // Değişiklik: Hamburger menü kaldırıldı. 
+    // Mini-sidebar geçişleri ve genişleme davranışları artık CSS (hover/transition) ile yönetiliyor.
 }
 
 // ---------------------------------------------------
@@ -213,10 +197,7 @@ function initNavigation() {
         e.preventDefault();
         navigate(link.dataset.view);
 
-        // Mobilde tiklama sonrasi sidebar'i kapat
-        if (window.innerWidth < 640) {
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-        }
+        // Değişiklik: Mini-sidebar mobilde de sürekli görünür olduğu için gizleme işlemi kaldırıldı.
     });
 }
 

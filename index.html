@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeknikCRM</title>
+    <link rel="icon" type="image/png" href="images/teknikcrmlogo.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet">
     <link href="css/custom.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -43,19 +44,15 @@
     <div class="px-4 py-3 lg:px-6">
         <div class="flex items-center justify-between">
 
-            <!-- Sol: Logo + Sidebar toggle -->
+            <!-- Sol: Logo -->
             <div class="flex items-center gap-3">
-                <button
-                    id="btn-toggle-sidebar"
-                    type="button"
-                    class="p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    aria-label="Menuyu ac/kapat"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/>
-                    </svg>
-                </button>
-                <span class="text-xl font-bold text-indigo-700 tracking-tight">TeknikCRM</span>
+                <a href="#" data-view="dashboard" class="nav-link flex items-center gap-2.5 group">
+                    <img src="images/teknikcrmlogo.png" class="h-8 w-8 object-contain transition-transform group-hover:scale-105" alt="TeknikCRM Logo">
+                    <span class="text-xl font-black tracking-tight flex items-center select-none">
+                        <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-violet-400">Teknik</span>
+                        <span class="text-slate-800 dark:text-white font-medium ml-1">CRM</span>
+                    </span>
+                </a>
             </div>
 
             <!-- Sag: Kullanıcı menusu -->
@@ -128,7 +125,7 @@
      ============================================================ -->
 <aside
     id="sidebar"
-    class="fixed top-0 left-0 z-40 w-64 h-screen pt-16 bg-white border-r border-gray-200 -translate-x-full sm:translate-x-0"
+    class="fixed top-0 left-0 z-40 h-screen pt-16 bg-white border-r border-gray-200"
 >
     <nav class="h-full px-3 py-4 overflow-y-auto">
         <ul class="space-y-0.5 text-sm font-medium">

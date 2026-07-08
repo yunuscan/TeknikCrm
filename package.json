@@ -1,0 +1,11 @@
+{
+  "name": "teknikcrm",
+  "version": "1.0.0",
+  "description": "Akınsoft Teknik CRM Projesi",
+  "type": "module",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "ws": "^8.21.0"
+  }
+}

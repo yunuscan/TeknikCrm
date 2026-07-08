@@ -343,7 +343,7 @@ tbody tr {
 }
 
 .dark-mode .sidebar-item-active {
-    background-color: #d58409;
+    background-color: #312e81;
     color: #a5b4fc;
 }
 
@@ -961,4 +961,62 @@ tbody tr {
     height: 100%;
     width: 0%;
     transition: width 0.3s ease;
+}
+
+/* ============================================================
+   Mini Sidebar (Hover to Expand) Styles
+   ============================================================ */
+
+#sidebar {
+    width: 72px;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in-out;
+    overflow-x: hidden;
+    white-space: nowrap;
+}
+
+#sidebar:hover {
+    width: 256px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Content wrapper margin-left is fixed to collapsed sidebar width */
+#main-wrapper {
+    margin-left: 72px !important;
+    transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade out labels and headings when sidebar is not hovered */
+#sidebar:not(:hover) .sidebar-item span,
+#sidebar:not(:hover) li.pt-3 span {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s ease-in-out;
+}
+
+/* Show labels and headings when sidebar is hovered */
+#sidebar:hover .sidebar-item span,
+#sidebar:hover li.pt-3 span {
+    opacity: 1;
+    transition: opacity 0.15s ease-in-out 0.05s; /* Slight delay for better aesthetic */
+}
+
+/* Keep sidebar items left-aligned in both states to prevent icons from shifting or jumping */
+.sidebar-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding-left: 1rem !important; /* 16px padding positions the icon perfectly inside 72px width */
+    padding-right: 1rem !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Collapsed divider style: turn it into a subtle bullet divider line */
+#sidebar:not(:hover) li.pt-3 {
+    border-top-color: #e2e8f0;
+    margin-left: 16px;
+    margin-right: 16px;
+}
+
+.dark-mode #sidebar:not(:hover) li.pt-3 {
+    border-top-color: #334155;
 }

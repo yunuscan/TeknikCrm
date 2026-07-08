@@ -5,3 +5,16 @@ supabaseonemlibilgilernot.txt
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Environment variables & secrets
+.env
+.env*.local
+
+# Node dependencies
+node_modules/
+
+# Vercel cache and build output
+.vercel/
+
+.vercel
+.env*
