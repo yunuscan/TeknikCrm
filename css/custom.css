@@ -8,7 +8,7 @@
 }
 
 /* Icerik alani giris animasyonu */
-#content-area > * {
+#content-area>* {
     animation: fadeInUp 0.18s ease-out;
 }
 
@@ -17,6 +17,7 @@
         opacity: 0;
         transform: translateY(6px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -95,10 +96,21 @@ tbody tr {
 }
 
 /* Takvim renk kodlaması */
-.cal-status-tamamlandi { border-left: 4px solid #16a34a; }
-.cal-status-bekliyor   { border-left: 4px solid #ca8a04; }
-.cal-status-gecikti    { border-left: 4px solid #dc2626; }
-.cal-status-planlandi  { border-left: 4px solid #2563eb; }
+.cal-status-tamamlandi {
+    border-left: 4px solid #16a34a;
+}
+
+.cal-status-bekliyor {
+    border-left: 4px solid #ca8a04;
+}
+
+.cal-status-gecikti {
+    border-left: 4px solid #dc2626;
+}
+
+.cal-status-planlandi {
+    border-left: 4px solid #2563eb;
+}
 
 /* Modern Durum/Oncelik Rozetleri */
 .badge-status {
@@ -110,7 +122,7 @@ tbody tr {
     align-items: center;
     justify-content: center;
     border: 1px solid transparent;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .badge-urgent {
@@ -242,6 +254,7 @@ tbody tr {
 
 /* Baskı stilleri */
 @media print {
+
     #sidebar,
     nav,
     #toast-container,
@@ -273,9 +286,16 @@ tbody tr {
     background-color: #1e293b;
     border-color: #334155;
 }
-.dark-mode nav .text-indigo-700 { color: #818cf8; }
+
+.dark-mode nav .text-indigo-700 {
+    color: #818cf8;
+}
+
 .dark-mode nav .text-gray-700,
-.dark-mode nav .text-gray-500 { color: #cbd5e1; }
+.dark-mode nav .text-gray-500 {
+    color: #cbd5e1;
+}
+
 .dark-mode nav button.p-2:hover,
 .dark-mode nav .dark-toggle-btn:hover {
     background-color: #334155;
@@ -286,29 +306,58 @@ tbody tr {
     background-color: #1e293b;
     border-color: #334155;
 }
-.dark-mode #user-dropdown .text-gray-800 { color: #e2e8f0; }
-.dark-mode #user-dropdown .text-gray-500 { color: #94a3b8; }
-.dark-mode #user-dropdown .text-gray-700 { color: #cbd5e1; }
-.dark-mode #user-dropdown li a:hover { background-color: #334155; }
-.dark-mode #user-dropdown .border-gray-100 { border-color: #334155; }
+
+.dark-mode #user-dropdown .text-gray-800 {
+    color: #e2e8f0;
+}
+
+.dark-mode #user-dropdown .text-gray-500 {
+    color: #94a3b8;
+}
+
+.dark-mode #user-dropdown .text-gray-700 {
+    color: #cbd5e1;
+}
+
+.dark-mode #user-dropdown li a:hover {
+    background-color: #334155;
+}
+
+.dark-mode #user-dropdown .border-gray-100 {
+    border-color: #334155;
+}
 
 /* --- Sidebar --- */
 .dark-mode #sidebar {
     background-color: #1e293b;
     border-color: #334155;
 }
-.dark-mode .sidebar-item { color: #94a3b8; }
+
+.dark-mode .sidebar-item {
+    color: #94a3b8;
+}
+
 .dark-mode .sidebar-item:hover {
     background-color: #334155;
     color: #e2e8f0;
 }
+
 .dark-mode .sidebar-item-active {
-    background-color: #312e81;
+    background-color: #d58409;
     color: #a5b4fc;
 }
-.dark-mode .sidebar-item-active svg { color: #a5b4fc; }
-.dark-mode .sidebar-item svg { color: #64748b; }
-.dark-mode .sidebar-item:hover svg { color: #94a3b8; }
+
+.dark-mode .sidebar-item-active svg {
+    color: #a5b4fc;
+}
+
+.dark-mode .sidebar-item svg {
+    color: #64748b;
+}
+
+.dark-mode .sidebar-item:hover svg {
+    color: #94a3b8;
+}
 
 /* --- Ana İçerik Alanı --- */
 .dark-mode #main-wrapper {
@@ -319,47 +368,98 @@ tbody tr {
 .dark-mode .text-slate-900,
 .dark-mode .text-gray-900,
 .dark-mode .text-slate-800,
-.dark-mode .text-gray-800 { color: #ffffff !important; }
+.dark-mode .text-gray-800 {
+    color: #ffffff !important;
+}
 
 .dark-mode .text-slate-700,
-.dark-mode .text-gray-700 { color: #f3f4f6 !important; }
+.dark-mode .text-gray-700 {
+    color: #f3f4f6 !important;
+}
 
 .dark-mode .text-slate-600,
-.dark-mode .text-gray-600 { color: #e5e7eb !important; }
+.dark-mode .text-gray-600 {
+    color: #e5e7eb !important;
+}
 
 .dark-mode .text-slate-500,
-.dark-mode .text-gray-500 { color: #cbd5e1 !important; }
+.dark-mode .text-gray-500 {
+    color: #cbd5e1 !important;
+}
 
 .dark-mode .text-slate-400,
-.dark-mode .text-gray-400 { color: #94a3b8 !important; }
+.dark-mode .text-gray-400 {
+    color: #94a3b8 !important;
+}
 
 .dark-mode .text-slate-300,
-.dark-mode .text-gray-300 { color: #64748b !important; }
+.dark-mode .text-gray-300 {
+    color: #64748b !important;
+}
 
 /* --- Özel/Renkli Metin Sınıfları Kontrast Düzeltmesi --- */
-.dark-mode .text-purple-700 { color: #e9d5ff !important; }
-.dark-mode .text-purple-600 { color: #c084fc !important; }
-.dark-mode .text-emerald-700 { color: #a7f3d0 !important; }
-.dark-mode .text-emerald-600 { color: #34d399 !important; }
-.dark-mode .text-orange-700 { color: #ffedd5 !important; }
-.dark-mode .text-orange-600 { color: #fb923c !important; }
-.dark-mode .text-indigo-700 { color: #c7d2fe !important; }
-.dark-mode .text-indigo-600 { color: #818cf8 !important; }
-.dark-mode .text-blue-700 { color: #bfdbfe !important; }
-.dark-mode .text-blue-600 { color: #60a5fa !important; }
-.dark-mode .text-green-700 { color: #bbf7d0 !important; }
-.dark-mode .text-green-600 { color: #4ade80 !important; }
+.dark-mode .text-purple-700 {
+    color: #e9d5ff !important;
+}
 
-.dark-mode .support-number-badge { color: #a5b4fc !important; }
+.dark-mode .text-purple-600 {
+    color: #c084fc !important;
+}
+
+.dark-mode .text-emerald-700 {
+    color: #a7f3d0 !important;
+}
+
+.dark-mode .text-emerald-600 {
+    color: #34d399 !important;
+}
+
+.dark-mode .text-orange-700 {
+    color: #ffedd5 !important;
+}
+
+.dark-mode .text-orange-600 {
+    color: #fb923c !important;
+}
+
+.dark-mode .text-indigo-700 {
+    color: #c7d2fe !important;
+}
+
+.dark-mode .text-indigo-600 {
+    color: #818cf8 !important;
+}
+
+.dark-mode .text-blue-700 {
+    color: #bfdbfe !important;
+}
+
+.dark-mode .text-blue-600 {
+    color: #60a5fa !important;
+}
+
+.dark-mode .text-green-700 {
+    color: #bbf7d0 !important;
+}
+
+.dark-mode .text-green-600 {
+    color: #4ade80 !important;
+}
+
+.dark-mode .support-number-badge {
+    color: #a5b4fc !important;
+}
 
 /* --- Kartlar, Paneller, Kutular --- */
 .dark-mode .bg-white {
     background-color: #1e293b;
 }
+
 .dark-mode .bg-slate-50,
 .dark-mode .bg-gray-50 {
     background-color: #0f172a;
 }
+
 .dark-mode .bg-slate-50\/50,
 .dark-mode .bg-gray-50\/50 {
     background-color: rgba(15, 23, 42, 0.5);
@@ -370,6 +470,7 @@ tbody tr {
 .dark-mode .border-gray-100 {
     border-color: #334155;
 }
+
 .dark-mode .border-slate-100,
 .dark-mode .border-slate-200 {
     border-color: #334155;
@@ -384,16 +485,28 @@ tbody tr {
 .dark-mode .hover\:bg-slate-50:hover {
     background-color: #334155;
 }
+
 .dark-mode .hover\:bg-gray-50:hover,
 .dark-mode .hover\:bg-gray-100:hover {
     background-color: #334155;
 }
 
 /* --- Stat Kartları (Dashboard) ikon arka planları --- */
-.dark-mode .bg-red-50 { background-color: rgba(239, 68, 68, 0.12); }
-.dark-mode .bg-orange-50 { background-color: rgba(249, 115, 22, 0.12); }
-.dark-mode .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.12); }
-.dark-mode .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.18); }
+.dark-mode .bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.12);
+}
+
+.dark-mode .bg-orange-50 {
+    background-color: rgba(249, 115, 22, 0.12);
+}
+
+.dark-mode .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.12);
+}
+
+.dark-mode .bg-indigo-100 {
+    background-color: rgba(99, 102, 241, 0.18);
+}
 
 /* --- Rozet / Badge koyu mod kontrast tamiri --- */
 .dark-mode .badge-urgent {
@@ -401,51 +514,71 @@ tbody tr {
     color: #f87171 !important;
     border-color: rgba(239, 68, 68, 0.3) !important;
 }
+
 .dark-mode .badge-high {
     background-color: rgba(239, 68, 68, 0.15) !important;
     color: #fca5a5 !important;
     border-color: rgba(239, 68, 68, 0.25) !important;
 }
+
 .dark-mode .badge-medium {
     background-color: rgba(245, 158, 11, 0.2) !important;
     color: #fbbf24 !important;
     border-color: rgba(245, 158, 11, 0.3) !important;
 }
+
 .dark-mode .badge-pending {
     background-color: rgba(249, 115, 22, 0.2) !important;
     color: #fdba74 !important;
     border-color: rgba(249, 115, 22, 0.3) !important;
 }
+
 .dark-mode .badge-planned {
     background-color: rgba(59, 130, 246, 0.2) !important;
     color: #93c5fd !important;
     border-color: rgba(59, 130, 246, 0.3) !important;
 }
+
 .dark-mode .badge-open {
     background-color: rgba(14, 165, 233, 0.2) !important;
     color: #7dd3fc !important;
     border-color: rgba(14, 165, 233, 0.3) !important;
 }
+
 .dark-mode .badge-completed {
     background-color: rgba(16, 185, 129, 0.2) !important;
     color: #6ee7b7 !important;
     border-color: rgba(16, 185, 129, 0.3) !important;
 }
+
 .dark-mode .badge-default {
     background-color: rgba(100, 116, 139, 0.2) !important;
     color: #cbd5e1 !important;
     border-color: rgba(100, 116, 139, 0.3) !important;
 }
-.dark-mode .bg-slate-100 { background-color: #334155; }
-.dark-mode .text-slate-600 { color: #94a3b8; }
+
+.dark-mode .bg-slate-100 {
+    background-color: #334155;
+}
+
+.dark-mode .text-slate-600 {
+    color: #94a3b8;
+}
 
 /* --- Tablo thead --- */
 .dark-mode thead {
     background-color: #0f172a;
 }
-.dark-mode thead th { color: #64748b; }
-.dark-mode tbody tr { border-color: #1e293b; }
-.dark-mode .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
+
+.dark-mode thead th {
+    color: #64748b;
+}
+
+.dark-mode tbody tr {
+    border-color: #1e293b;
+}
+
+.dark-mode .divide-gray-50> :not([hidden])~ :not([hidden]) {
     border-color: #1e293b;
 }
 
@@ -459,14 +592,17 @@ tbody tr {
     border-color: #334155 !important;
     color: #ffffff !important;
 }
+
 .dark-mode input::placeholder,
 .dark-mode textarea::placeholder {
     color: #64748b !important;
 }
+
 .dark-mode select option {
     background-color: #1e293b !important;
     color: #ffffff !important;
 }
+
 .dark-mode input:focus,
 .dark-mode select:focus,
 .dark-mode textarea:focus {
@@ -479,7 +615,8 @@ tbody tr {
 .dark-mode .modal-overlay {
     background-color: rgba(0, 0, 0, 0.7);
 }
-.dark-mode .modal-overlay > div {
+
+.dark-mode .modal-overlay>div {
     background-color: #1e293b;
 }
 
@@ -488,6 +625,7 @@ tbody tr {
     color: #e2e8f0;
     border-color: #334155;
 }
+
 .dark-mode .filter-btn:hover {
     background-color: #334155;
 }
@@ -496,9 +634,11 @@ tbody tr {
 .dark-mode ::-webkit-scrollbar-track {
     background: #1e293b;
 }
+
 .dark-mode ::-webkit-scrollbar-thumb {
     background: #475569;
 }
+
 .dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #64748b;
 }
@@ -509,7 +649,7 @@ tbody tr {
 }
 
 /* --- Toast bildirimleri --- */
-.dark-mode #toast-container > div {
+.dark-mode #toast-container>div {
     background-color: #1e293b;
     border-color: #334155;
     color: #e2e8f0;
@@ -528,58 +668,99 @@ tbody tr {
     color: #94a3b8 !important;
     border-color: rgba(100, 116, 139, 0.35) !important;
 }
+
 .dark-mode .badge-service-paid {
     background: rgba(245, 158, 11, 0.18) !important;
     color: #fbbf24 !important;
     border-color: rgba(245, 158, 11, 0.35) !important;
 }
+
 .dark-mode .badge-fee-paid {
     background: rgba(16, 185, 129, 0.2) !important;
     color: #6ee7b7 !important;
     border-color: rgba(16, 185, 129, 0.35) !important;
 }
+
 .dark-mode .badge-fee-unpaid {
     background: rgba(239, 68, 68, 0.2) !important;
     color: #fca5a5 !important;
     border-color: rgba(239, 68, 68, 0.35) !important;
 }
+
 .dark-mode .service-price-tag {
     color: #e2e8f0 !important;
 }
 
 /* --- Emerald / Orange / Indigo Butonlar (Koyu Mod) --- */
-.dark-mode .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.12) !important; }
-.dark-mode .text-emerald-600 { color: #34d399 !important; }
-.dark-mode .border-emerald-100 { border-color: rgba(52, 211, 153, 0.2) !important; }
-.dark-mode .hover\:bg-emerald-100:hover { background-color: rgba(52, 211, 153, 0.25) !important; }
+.dark-mode .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.12) !important;
+}
 
-.dark-mode .bg-orange-50 { background-color: rgba(249, 115, 22, 0.12) !important; }
-.dark-mode .text-orange-600 { color: #fb923c !important; }
-.dark-mode .border-orange-100 { border-color: rgba(251, 146, 60, 0.2) !important; }
-.dark-mode .hover\:bg-orange-100:hover { background-color: rgba(251, 146, 60, 0.25) !important; }
+.dark-mode .text-emerald-600 {
+    color: #34d399 !important;
+}
 
-.dark-mode .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.12) !important; }
-.dark-mode .text-indigo-600 { color: #818cf8 !important; }
-.dark-mode .border-indigo-100 { border-color: rgba(129, 140, 248, 0.2) !important; }
-.dark-mode .hover\:bg-indigo-100:hover { background-color: rgba(129, 140, 248, 0.25) !important; }
+.dark-mode .border-emerald-100 {
+    border-color: rgba(52, 211, 153, 0.2) !important;
+}
+
+.dark-mode .hover\:bg-emerald-100:hover {
+    background-color: rgba(52, 211, 153, 0.25) !important;
+}
+
+.dark-mode .bg-orange-50 {
+    background-color: rgba(249, 115, 22, 0.12) !important;
+}
+
+.dark-mode .text-orange-600 {
+    color: #fb923c !important;
+}
+
+.dark-mode .border-orange-100 {
+    border-color: rgba(251, 146, 60, 0.2) !important;
+}
+
+.dark-mode .hover\:bg-orange-100:hover {
+    background-color: rgba(251, 146, 60, 0.25) !important;
+}
+
+.dark-mode .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.12) !important;
+}
+
+.dark-mode .text-indigo-600 {
+    color: #818cf8 !important;
+}
+
+.dark-mode .border-indigo-100 {
+    border-color: rgba(129, 140, 248, 0.2) !important;
+}
+
+.dark-mode .hover\:bg-indigo-100:hover {
+    background-color: rgba(129, 140, 248, 0.25) !important;
+}
 
 /* --- Takvim Kartları Koyu Mod Kontrastı --- */
 .dark-mode .bg-green-50,
 .dark-mode .cal-status-tamamlandi {
     background-color: rgba(16, 185, 129, 0.12) !important;
 }
+
 .dark-mode .bg-yellow-50,
 .dark-mode .cal-status-bekliyor {
     background-color: rgba(245, 158, 11, 0.12) !important;
 }
+
 .dark-mode .bg-red-50,
 .dark-mode .cal-status-gecikti {
     background-color: rgba(239, 68, 68, 0.12) !important;
 }
+
 .dark-mode .bg-sky-50,
 .dark-mode .cal-status-planlandi {
     background-color: rgba(14, 165, 233, 0.12) !important;
 }
+
 .dark-mode .bg-gray-100 {
     background-color: #1e293b !important;
 }
@@ -596,17 +777,21 @@ tbody tr {
 .dark-mode [data-type="support"] {
     background-color: #0f172a;
 }
+
 .dark-mode [data-type="task"]:hover,
 .dark-mode [data-type="visit"]:hover,
 .dark-mode [data-type="support"]:hover {
     background-color: #334155 !important;
 }
+
 .dark-mode [data-type="task"]:hover {
     border-color: #c084fc !important;
 }
+
 .dark-mode [data-type="visit"]:hover {
     border-color: #34d399 !important;
 }
+
 .dark-mode [data-type="support"]:hover {
     border-color: #fb923c !important;
 }
@@ -616,23 +801,29 @@ tbody tr {
     background-color: #181825 !important;
     border-color: #313244 !important;
 }
+
 .dark-mode .max-w-5xl table {
     background-color: #181825 !important;
 }
+
 .dark-mode .max-w-5xl thead {
     background-color: #1e1e2e !important;
 }
+
 .dark-mode .max-w-5xl thead th {
     color: #bac2de !important;
     border-color: #313244 !important;
 }
+
 .dark-mode .max-w-5xl tbody tr {
     background-color: transparent !important;
     border-color: #313244 !important;
 }
+
 .dark-mode .max-w-5xl tbody tr:hover {
     background-color: rgba(255, 255, 255, 0.02) !important;
 }
+
 .dark-mode tbody tr.bg-indigo-50\/40 {
     background-color: transparent !important;
 }
@@ -643,6 +834,7 @@ tbody tr {
     border-color: #45475a !important;
     color: #ffffff !important;
 }
+
 .dark-mode select[data-action="change-role"] option {
     background-color: #11111b !important;
     color: #ffffff !important;
@@ -654,23 +846,29 @@ tbody tr {
     border-color: #f5f5f7 !important;
     color: #ffffff !important;
 }
+
 .dark-mode button[data-action="edit-user"]:hover {
     background-color: #313144 !important;
 }
+
 .dark-mode button[data-action="toggle-active"] {
     background-color: #11111b !important;
 }
+
 .dark-mode button[data-action="toggle-active"][data-active="true"] {
     border-color: #f97316 !important;
     color: #ffedd5 !important;
 }
+
 .dark-mode button[data-action="toggle-active"][data-active="true"]:hover {
     background-color: rgba(249, 115, 22, 0.2) !important;
 }
+
 .dark-mode button[data-action="toggle-active"][data-active="false"] {
     border-color: #22c55e !important;
     color: #f0fdf4 !important;
 }
+
 .dark-mode button[data-action="toggle-active"][data-active="false"]:hover {
     background-color: rgba(34, 197, 94, 0.2) !important;
 }
@@ -686,18 +884,23 @@ tbody tr {
 .dark-mode .border-gray-100 {
     border-color: #334155 !important;
 }
+
 .dark-mode .border-gray-200 {
     border-color: #334155 !important;
 }
+
 .dark-mode .border-gray-300 {
     border-color: #475569 !important;
 }
+
 .dark-mode .bg-gray-50 {
     background-color: #0f172a !important;
 }
+
 .dark-mode .hover\:bg-gray-50:hover {
     background-color: #334155 !important;
 }
+
 /* ============================================================
    EXCEL IMPORT MODULE STYLES
    ============================================================ */
@@ -710,15 +913,20 @@ tbody tr {
     cursor: pointer;
     border-radius: 12px;
 }
-.excel-upload-zone:hover, .excel-upload-zone.dragover {
+
+.excel-upload-zone:hover,
+.excel-upload-zone.dragover {
     border-color: #10b981;
     background-color: #f0fdf4;
 }
+
 .dark-mode .excel-upload-zone {
     border-color: #334155;
     background-color: #0f172a;
 }
-.dark-mode .excel-upload-zone:hover, .dark-mode .excel-upload-zone.dragover {
+
+.dark-mode .excel-upload-zone:hover,
+.dark-mode .excel-upload-zone.dragover {
     border-color: #34d399;
     background-color: rgba(52, 211, 153, 0.05);
 }
@@ -730,6 +938,7 @@ tbody tr {
     border-radius: 8px;
     background-position: right 0.5rem center;
 }
+
 .mapping-required::after {
     content: " *";
     color: #ef4444;
@@ -742,9 +951,11 @@ tbody tr {
     height: 10px;
     overflow: hidden;
 }
+
 .dark-mode .progress-bar-container {
     background-color: #334155;
 }
+
 .progress-bar-fill {
     background-color: #10b981;
     height: 100%;

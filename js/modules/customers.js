@@ -22,7 +22,7 @@ const MAPPING_FIELDS = [
     { id: 'company_name', label: 'Firma Unvanı', required: false, desc: 'Müşterinin firma unvanı.' },
     { id: 'first_name', label: 'Ad', required: true, desc: 'Müşterinin adı (Zorunlu. Yoksa diğer alanlardan türetilir).' },
     { id: 'last_name', label: 'Soyad', required: true, desc: 'Müşterinin soyadı (Zorunlu. Yoksa diğer alanlardan türetilir).' },
-    { id: 'phone', label: 'Telefon', required: true, desc: 'Müşterinin telefon numarası (Zorunlu).' },
+    { id: 'phone', label: 'Telefon', required: false, desc: 'Müşterinin telefon numarası.' },
     { id: 'authorized_person', label: 'Yetkili Kişi', required: false, desc: 'Firma yetkilisinin adı soyadı.' },
     { id: 'tax_number', label: 'Vergi Numarası', required: false, desc: 'Vergi veya T.C. Kimlik numarası.' },
     { id: 'tax_office', label: 'Vergi Dairesi', required: false, desc: 'Bağlı olunan vergi dairesi.' },
@@ -1134,11 +1134,7 @@ function saveMappingAndShowPreview() {
     
     currentMapping = mapping;
     
-    if (!mapping.phone) {
-        showToast('Lütfen en az "Telefon" alanını eşleştirin.', 'warning');
-        return;
-    }
-    
+
     if (!mapping.first_name && !mapping.company_name && !mapping.authorized_person) {
         showToast('İsim tespiti yapabilmek için "Ad", "Firma Unvanı" veya "Yetkili Kişi" alanlarından en az birini eşleştirmelisiniz.', 'warning');
         return;
@@ -1230,13 +1226,7 @@ async function startImport(profile) {
         };
         
         const phoneRaw = getMappedVal('phone');
-        const phone = cleanPhone(phoneRaw);
-        
-        if (!phone) {
-            failCount++;
-            failedRows.push({ rowNum: i + 2, reason: 'Telefon numarası boş veya geçersiz.' });
-            continue;
-        }
+        const phone = cleanPhone(phoneRaw) || '-';
         
         const firstRaw = getMappedVal('first_name');
         const lastRaw = getMappedVal('last_name');
