@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,8 +22,9 @@
         };
     </script>
 </head>
-<body class="h-full bg-slate-100 flex items-center justify-center">
 
+<body class="h-full bg-slate-100 flex items-center justify-center">
+    DENEME
     <div class="w-full max-w-md px-4">
         <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
 
@@ -40,44 +42,27 @@
                     <label for="email" class="block mb-1.5 text-sm font-medium text-gray-700">
                         E-posta Adresi
                     </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        autocomplete="email"
-                        required
+                    <input type="email" id="email" name="email" autocomplete="email" required
                         class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
-                        placeholder="ad.soyad@sirket.com"
-                    >
+                        placeholder="ad.soyad@sirket.com">
                 </div>
                 <div>
                     <label for="password" class="block mb-1.5 text-sm font-medium text-gray-700">
                         Sifre
                     </label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        autocomplete="current-password"
-                        required
+                    <input type="password" id="password" name="password" autocomplete="current-password" required
                         class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
-                        placeholder="Sifrenizi girin"
-                    >
+                        placeholder="Sifrenizi girin">
                 </div>
-                <button
-                    type="submit"
-                    id="btn-login"
-                    class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
+                <button type="submit" id="btn-login"
+                    class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed">
                     Giris Yap
                 </button>
             </form>
 
             <div class="mt-5 text-center">
-                <button
-                    id="btn-show-reset"
-                    class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline focus:outline-none"
-                >
+                <button id="btn-show-reset"
+                    class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline focus:outline-none">
                     Sifremi Unuttum
                 </button>
             </div>
@@ -91,25 +76,16 @@
                     <label for="reset-email" class="block mb-1.5 text-sm font-medium text-gray-700">
                         E-posta Adresi
                     </label>
-                    <input
-                        type="email"
-                        id="reset-email"
-                        required
+                    <input type="email" id="reset-email" required
                         class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="ad.soyad@sirket.com"
-                    >
+                        placeholder="ad.soyad@sirket.com">
                 </div>
-                <button
-                    type="submit"
-                    class="w-full py-2.5 px-4 bg-gray-700 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors"
-                >
+                <button type="submit"
+                    class="w-full py-2.5 px-4 bg-gray-700 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors">
                     Sifirlama Baglantisi Gonder
                 </button>
-                <button
-                    type="button"
-                    id="btn-back-to-login"
-                    class="w-full py-2 text-sm text-gray-500 hover:text-gray-700"
-                >
+                <button type="button" id="btn-back-to-login"
+                    class="w-full py-2 text-sm text-gray-500 hover:text-gray-700">
                     Giris formuna don
                 </button>
             </form>
@@ -147,9 +123,9 @@
         function showAlert(message, type = 'info') {
             const el = document.getElementById('alert-area');
             const styles = {
-                error:   'bg-red-50 border-red-300 text-red-800',
+                error: 'bg-red-50 border-red-300 text-red-800',
                 success: 'bg-green-50 border-green-300 text-green-800',
-                info:    'bg-blue-50 border-blue-300 text-blue-800',
+                info: 'bg-blue-50 border-blue-300 text-blue-800',
             };
             el.className = `mb-5 p-3.5 rounded-lg text-sm border ${styles[type] || styles.info}`;
             el.textContent = message;
@@ -174,7 +150,7 @@
             hideAlert();
             setLoading(true);
 
-            const email    = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
             try {
@@ -243,4 +219,5 @@
         });
     </script>
 </body>
+
 </html>
