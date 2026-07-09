@@ -93,8 +93,12 @@ async function sendMessage() {
         removeLoading(loadingId);
 
         if (!res.ok) {
-            const err = await res.json();
-            appendMessage('ai', `Hata: ${err.error || 'Bilinmeyen hata'}`, true);
+            const err = await res.json().catch(() => ({}));
+            if (res.status === 429) {
+                appendMessage('ai', '⏳ AI günlük istek kotası doldu. Birkaç dakika bekleyip tekrar deneyin.', true);
+            } else {
+                appendMessage('ai', `Hata: ${err.error || 'Bilinmeyen hata'}`, true);
+            }
             return;
         }
 

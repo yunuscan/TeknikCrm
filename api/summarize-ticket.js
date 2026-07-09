@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getSupabaseClient } from './supabaseClient.js';
 
 export default async function handler(req, res) {
@@ -22,9 +21,9 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'ticket_id parametresi eksik.' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-        return res.status(500).json({ error: 'GEMINI_API_KEY ortam değişkeni ayarlanmamış.' });
+        return res.status(500).json({ error: 'GROQ_API_KEY ortam değişkeni ayarlanmamış.' });
     }
 
     try {
@@ -80,11 +79,9 @@ export default async function handler(req, res) {
             });
         }
 
-        // 4. Gemini API çağrısı yap
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-        const prompt = `Aşağıdaki teknik destek kaydını (ticket) analiz et. Bu kaydı özetle, destek personeline yardımcı olması için müşteriye yönelik profesyonel bir otomatik yanıt taslağı hazırla ve kayıt için bir öncelik seviyesi öner (Düşük/Orta/Yüksek/Kritik).
+        // 4. Groq API çağrısı yap (JSON Modunda)
+        const systemPrompt = `Sen teknik destek biletlerini analiz eden bir AI asistanısın. 
+Aşağıdaki teknik destek kaydını (ticket) analiz et. Bu kaydı özetle, destek personeline yardımcı olması için müşteriye yönelik profesyonel bir otomatik yanıt taslağı hazırla ve kayıt için bir öncelik seviyesi öner (Düşük/Orta/Yüksek/Kritik).
 Lütfen yanıtını KESİNLİKLE aşağıdaki JSON formatında döndür. JSON haricinde hiçbir metin veya açıklama ekleme:
 {
   "ozet": "Kayıt özeti buraya...",
@@ -92,23 +89,38 @@ Lütfen yanıtını KESİNLİKLE aşağıdaki JSON formatında döndür. JSON ha
   "yanit_taslagi": "Sayın yetkili, talebiniz alınmıştır..."
 }`;
 
-        const result = await model.generateContent({
-            contents: [
-                { role: 'user', parts: [{ text: `Bağlam (Context):\n${context}\n\nİstek (Prompt):\n${prompt}` }] }
-            ],
-            generationConfig: {
-                responseMimeType: 'application/json'
-            }
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: `Bağlam (Context):\n${context}` }
+                ],
+                response_format: { type: 'json_object' },
+                temperature: 0.2
+            })
         });
 
-        const responseText = result.response.text();
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            console.error('Groq API Hata Detayı:', errData);
+            throw new Error(errData.error?.message || `HTTP Hata: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const responseText = data.choices[0]?.message?.content || '{}';
         
         // Yanıtı parse et
         let resultJson;
         try {
             resultJson = JSON.parse(responseText);
         } catch (parseErr) {
-            console.error('Gemini JSON parse hatası. Ham yanıt:', responseText);
+            console.error('Groq JSON parse hatası. Ham yanıt:', responseText);
             resultJson = {
                 ozet: 'Özet ayrıştırılamadı. Ham yanıt: ' + responseText,
                 oncelik: 'Orta',
@@ -143,6 +155,9 @@ Lütfen yanıtını KESİNLİKLE aşağıdaki JSON formatında döndür. JSON ha
             console.error('Supabase AI log yazma hatası:', logErr.message);
         }
 
+        if (error.status === 429 || (error.message && error.message.includes('429'))) {
+            return res.status(429).json({ error: 'AI günlük istek kotası doldu. Lütfen birkaç dakika bekleyip tekrar deneyin.' });
+        }
         return res.status(500).json({ error: 'Bilet özetlenirken bir hata oluştu: ' + error.message });
     }
 }

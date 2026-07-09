@@ -313,7 +313,15 @@ function bindEvents(profile, customers, staff, tasks) {
             const id = row.dataset.id;
             const task = tasks.find(t => t.id === id);
             if (task) {
-                showTaskDetail(task);
+                const canWrite = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
+                if (canWrite) {
+                    document.getElementById('task-modal-title').textContent = 'Görev Duzenle';
+                    document.getElementById('task-modal-form').dataset.editId = id;
+                    fillTaskForm(document.getElementById('task-modal-form'), task);
+                    openModal('task-modal');
+                } else {
+                    showTaskDetail(task);
+                }
             }
         }
     });
