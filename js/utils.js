@@ -152,6 +152,7 @@ export function openModal(id) {
     el.classList.remove('hidden');
     el.setAttribute('aria-hidden', 'false');
     document.body.classList.add('overflow-hidden');
+    autoInitSearchableSelects(el);
 }
 
 export function closeModal(id) {
@@ -233,5 +234,210 @@ export function getServiceBadgeHTML(s) {
         </span>`;
     }
     return `<span class="badge-service-free">Ücretsiz</span>`;
+}
+
+// ---------------------------------------------------
+// Searchable Select Component
+// ---------------------------------------------------
+
+export function initSearchableSelect(selectEl) {
+    if (!selectEl || selectEl.dataset.searchableInitialized) return;
+    selectEl.dataset.searchableInitialized = 'true';
+
+    // Hide original select
+    selectEl.style.display = 'none';
+
+    // Create wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'searchable-select-wrapper relative w-full';
+    selectEl.parentNode.insertBefore(wrapper, selectEl);
+    wrapper.appendChild(selectEl);
+
+    // Create trigger button
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'searchable-select-trigger w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+    
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'searchable-select-label truncate';
+    trigger.appendChild(labelSpan);
+
+    const arrowSvg = document.createElement('div');
+    arrowSvg.innerHTML = `
+        <svg class="w-4 h-4 text-gray-400 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+    `;
+    const svgEl = arrowSvg.firstElementChild;
+    trigger.appendChild(svgEl);
+    wrapper.appendChild(trigger);
+
+    // Create dropdown panel
+    const dropdown = document.createElement('div');
+    dropdown.className = 'searchable-select-dropdown hidden absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-lg shadow-lg flex flex-col max-h-60 overflow-hidden';
+    
+    // Search Box
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'p-2 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Ara...';
+    searchInput.className = 'searchable-select-search w-full px-3 py-1.5 border border-gray-300 dark:border-slate-650 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-slate-900 dark:text-gray-300';
+    searchContainer.appendChild(searchInput);
+    dropdown.appendChild(searchContainer);
+
+    // Options List Container
+    const optionsList = document.createElement('ul');
+    optionsList.className = 'searchable-select-options flex-1 overflow-y-auto py-1 text-sm text-gray-700 dark:text-gray-300 max-h-44';
+    dropdown.appendChild(optionsList);
+    wrapper.appendChild(dropdown);
+
+    // Helper: update trigger label
+    function updateTrigger() {
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        labelSpan.textContent = selectedOption ? selectedOption.textContent : '';
+    }
+
+    // Helper: rebuild options list
+    function rebuildOptions() {
+        optionsList.innerHTML = '';
+        Array.from(selectEl.options).forEach(opt => {
+            const li = document.createElement('li');
+            li.className = 'px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/45 hover:text-indigo-600 dark:hover:text-indigo-200 cursor-pointer transition-colors truncate';
+            li.textContent = opt.textContent;
+            li.dataset.value = opt.value;
+            if (opt.selected) {
+                li.classList.add('bg-indigo-50/50', 'dark:bg-indigo-950/20', 'text-indigo-600', 'font-medium');
+            }
+            li.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectEl.value = opt.value;
+                selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                updateTrigger();
+                closeDropdown();
+            });
+            optionsList.appendChild(li);
+        });
+        updateTrigger();
+    }
+
+    // Open/Close logic
+    function toggleDropdown() {
+        if (dropdown.classList.contains('hidden')) {
+            openDropdown();
+        } else {
+            closeDropdown();
+        }
+    }
+
+    function openDropdown() {
+        dropdown.classList.remove('hidden');
+        svgEl.classList.add('rotate-180');
+        searchInput.value = '';
+        filterOptions('');
+        setTimeout(() => searchInput.focus(), 50);
+    }
+
+    function closeDropdown() {
+        dropdown.classList.add('hidden');
+        svgEl.classList.remove('rotate-180');
+    }
+
+    // Filter Options
+    function filterOptions(query) {
+        const normalizedQuery = query.toLowerCase()
+            .replace(/i/g, 'i').replace(/ı/g, 'ı')
+            .replace(/ş/g, 's').replace(/ğ/g, 'g')
+            .replace(/ü/g, 'u').replace(/ö/g, 'o')
+            .replace(/ç/g, 'c');
+        const items = optionsList.querySelectorAll('li');
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase()
+                .replace(/i/g, 'i').replace(/ı/g, 'ı')
+                .replace(/ş/g, 's').replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u').replace(/ö/g, 'o')
+                .replace(/ç/g, 'c');
+            if (text.includes(normalizedQuery)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // Events
+    trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleDropdown();
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        filterOptions(e.target.value);
+    });
+
+    searchInput.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+
+    // Intercept value changes
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+    Object.defineProperty(selectEl, 'value', {
+        get() {
+            return descriptor.get.call(this);
+        },
+        set(val) {
+            descriptor.set.call(this, val);
+            updateTrigger();
+            const items = optionsList.querySelectorAll('li');
+            items.forEach(item => {
+                if (item.dataset.value === String(val)) {
+                    item.classList.add('bg-indigo-50/50', 'dark:bg-indigo-950/20', 'text-indigo-600', 'font-medium');
+                } else {
+                    item.classList.remove('bg-indigo-50/50', 'dark:bg-indigo-950/20', 'text-indigo-600', 'font-medium');
+                }
+            });
+        }
+    });
+
+    // MutationObserver to listen to option updates
+    const observer = new MutationObserver(() => {
+        rebuildOptions();
+    });
+    observer.observe(selectEl, { childList: true, subtree: true });
+
+    // Initial build
+    rebuildOptions();
+}
+
+export function autoInitSearchableSelects(container = document) {
+    const selects = container.querySelectorAll('select');
+    selects.forEach(select => {
+        const hasPlaceholder = Array.from(select.options).some(opt => {
+            const txt = opt.textContent.toLowerCase();
+            return txt.includes('seçiniz') || txt.includes('seçin') || txt.includes('secin');
+        });
+        if (hasPlaceholder) {
+            initSearchableSelect(select);
+        }
+    });
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('reset', (e) => {
+        setTimeout(() => {
+            const selects = e.target.querySelectorAll('select[data-searchable-initialized="true"]');
+            selects.forEach(select => {
+                select.value = select.value;
+            });
+        }, 0);
+    });
 }
 

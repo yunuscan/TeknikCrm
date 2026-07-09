@@ -1020,3 +1020,49 @@ tbody tr {
 .dark-mode #sidebar:not(:hover) li.pt-3 {
     border-top-color: #334155;
 }
+
+/* ============================================================
+   SEARCHABLE SELECT COMPONENT STYLES
+   ============================================================ */
+.searchable-select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.searchable-select-trigger {
+    cursor: pointer;
+    text-align: left;
+    user-select: none;
+}
+
+.searchable-select-dropdown {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+.searchable-select-options li {
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Dark mode overrides for Searchable Select dropdown */
+.dark-mode .searchable-select-dropdown {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-mode .searchable-select-search {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+.dark-mode .searchable-select-options li:hover {
+    background-color: #312e81 !important;
+    color: #a5b4fc !important;
+}
+
+.dark-mode .searchable-select-options li.bg-indigo-50\/50 {
+    background-color: rgba(49, 46, 129, 0.4) !important;
+    color: #a5b4fc !important;
+}

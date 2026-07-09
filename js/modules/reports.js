@@ -16,7 +16,6 @@ export async function renderReports({ profile }) {
         cTotal, cActive,
         tsOpen, tsClosed,
         tasksAll, tasksOverdue,
-        licExpired,
         visitsMonth,
     ] = await Promise.all([
         supabase.from('customers').select('*', { count: 'exact', head: true }),
@@ -25,7 +24,6 @@ export async function renderReports({ profile }) {
         supabase.from('technical_supports').select('*', { count: 'exact', head: true }).in('status', ['Çözüldü', 'Kapali']),
         supabase.from('tasks').select('*', { count: 'exact', head: true }),
         supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'Gecikti'),
-        supabase.from('licenses').select('*', { count: 'exact', head: true }).lt('maintenance_end', today),
         supabase.from('visits').select('*', { count: 'exact', head: true }).gte('visit_date', monthStart),
     ]);
 
@@ -49,7 +47,6 @@ export async function renderReports({ profile }) {
         tsClosed:    tsClosed.count    || 0,
         tasksAll:    tasksAll.count    || 0,
         tasksOverdue: tasksOverdue.count || 0,
-        licExpired:  licExpired.count  || 0,
         visitsMonth: visitsMonth.count || 0,
         loadMap,
     }));
@@ -92,7 +89,6 @@ function buildHTML(s) {
                 ${reportCard('Cozulen Destek',        s.tsClosed,     'text-green-600')}
                 ${reportCard('Toplam Görev',          s.tasksAll,     'text-gray-800')}
                 ${reportCard('Geciken Görev',         s.tasksOverdue, 'text-red-600')}
-                ${reportCard('Bakimi Gecmis Lisans',  s.licExpired,   'text-red-600')}
                 ${reportCard('Bu Ay Ziyaret',         s.visitsMonth,  'text-blue-600')}
             </div>
 

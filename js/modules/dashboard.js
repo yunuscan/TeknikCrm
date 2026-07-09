@@ -16,22 +16,17 @@ import {
 export async function renderDashboard({ profile }) {
     console.log('Aktif Rol:', profile?.role);
     const today = new Date().toISOString().split('T')[0];
-    const warnDate = new Date(); warnDate.setDate(warnDate.getDate() + 30);
-    const warnStr = warnDate.toISOString().split('T')[0];
 
     const [
         tasksOverdueRes,
         supportsOpenRes,
-        licensesExpiredRes,
         overdueTasksListRes,
         todayVisitsListRes,
         todayTasksListRes,
-        upcomingLicensesListRes,
         activeSupportsListRes,
     ] = await Promise.all([
         supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'Gecikti'),
         supabase.from('technical_supports').select('*', { count: 'exact', head: true }).in('status', ['Acik', 'Devam Ediyor']),
-        supabase.from('licenses').select('*', { count: 'exact', head: true }).lt('maintenance_end', today),
 
         supabase
             .from('tasks')
@@ -54,13 +49,6 @@ export async function renderDashboard({ profile }) {
             .order('title', { ascending: true }),
 
         supabase
-            .from('licenses')
-            .select('*, customers(company_name, first_name, last_name)')
-            .gte('maintenance_end', today)
-            .lte('maintenance_end', warnStr)
-            .order('maintenance_end', { ascending: true }),
-
-        supabase
             .from('technical_supports')
             .select('*, customers(company_name, first_name, last_name), assigned:profiles!technical_supports_assigned_to_fkey(full_name)')
             .in('status', ['Acik', 'Devam Ediyor'])
@@ -71,8 +59,6 @@ export async function renderDashboard({ profile }) {
     const activeVisits = todayVisitsListRes.data || [];
     const activeTasks = todayTasksListRes.data || [];
     const activeTasksList = overdueTasksListRes.data || [];
-
-    const upcomingLicenses = upcomingLicensesListRes.data || [];
     const activeSupports = activeSupportsListRes.data || [];
 
     const todayAgendaCount = activeVisits.length + activeTasks.length;
@@ -80,11 +66,10 @@ export async function renderDashboard({ profile }) {
     const stats = {
         overdueTasks: tasksOverdueRes.count || 0,
         openSupports: supportsOpenRes.count || 0,
-        expiredLicenses: licensesExpiredRes.count || 0,
         todayAgenda: todayAgendaCount,
     };
 
-    setContent(buildHTML(stats, activeTasksList, activeTasks, activeVisits, activeSupports, profile, today, warnStr));
+    setContent(buildHTML(stats, activeTasksList, activeTasks, activeVisits, activeSupports, profile, today));
     bindEvents(activeTasksList, activeTasks, activeVisits, activeSupports, profile);
 }
 
@@ -92,7 +77,7 @@ export async function renderDashboard({ profile }) {
 // HTML uretimi
 // ---------------------------------------------------
 
-function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSupports, profile, today, warnStr) {
+function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSupports, profile, today) {
     const activeCards = activeTasksList.length
         ? activeTasksList.map(t => buildTaskCard(t, today, true)).join('')
         : `<div class="col-span-full py-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
@@ -137,10 +122,9 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 
                 <!-- Özet Kartlar (Top Row, 12 cols span) -->
-                <div class="lg:col-span-12 grid grid-cols-2 xl:grid-cols-4 gap-3">
+                <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     ${buildStatCard('Geciken Görevler', stats.overdueTasks, 'text-red-600', 'bg-red-50 text-red-500', iconTask())}
                     ${buildStatCard('Açık Destekler', stats.openSupports, 'text-orange-600', 'bg-orange-50 text-orange-500', iconSupport())}
-                    ${buildStatCard('Bakımı Geçen Lisans', stats.expiredLicenses, 'text-red-600', 'bg-red-50 text-red-500', iconLicense())}
                     ${buildStatCard('Bugünün Ajandası', stats.todayAgenda, 'text-indigo-600', 'bg-indigo-50 text-indigo-500', iconCalendar())}
                 </div>
 

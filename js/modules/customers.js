@@ -2,6 +2,7 @@ import { supabase }    from '../supabase-config.js';
 import {
     setContent, showToast, escHtml, formatDate, formatDateTime,
     openModal, closeModal, buildOptions, translateError, setPageTitle,
+    initSearchableSelect,
 } from '../utils.js';
 
 // ---------------------------------------------------
@@ -32,8 +33,7 @@ const MAPPING_FIELDS = [
     { id: 'notes', label: 'Özel Notlar', required: false, desc: 'Müşteri ile ilgili notlar.' },
     { id: 'license_program_name', label: 'Lisans Program Adı', required: false, desc: 'Örn: Wolvox ERP, Nebim V3' },
     { id: 'license_number', label: 'Lisans Anahtarı / Key', required: false, desc: 'Lisans seri numarası veya anahtarı.' },
-    { id: 'license_version', label: 'Lisans Versiyonu', required: false, desc: 'Program versiyonu (örn: v8)' },
-    { id: 'license_maintenance_end', label: 'Bakım Bitiş Tarihi', required: false, desc: 'YYYY-MM-DD veya DD.MM.YYYY formatında.' }
+    { id: 'license_version', label: 'Lisans Şifresi', required: false, desc: 'Program giriş şifresi veya lisans şifresi.' }
 ];
 
 // ---------------------------------------------------
@@ -233,14 +233,61 @@ function buildRow(c, canWrite, canDelete) {
 // Form HTML
 // ---------------------------------------------------
 
+function buildLicenseBlock(lic = {}, index = 0, disabledAttr = '') {
+    const programList = [
+        'E-ÇÖZÜMLER',
+        'E-OFİS',
+        'WOLVOX ERP',
+        'E-TİCARET',
+        'WOLVOX GENEL MUHASEBE',
+        'HOTELSMART',
+        'MOBİL ÇÖZÜMLER',
+        'OCTOCLOUD',
+        'WOLVOX OTEL',
+        'AKINSOFT OTEL',
+        'WOLVOX RESTORAN',
+        'WOLVOX SERVİS - SERİ LOT',
+        'SİTECLOUD',
+        'WOLVOX HIZLI SATIŞ',
+        'WOLVOX CRM',
+        'WOLVOX HRM',
+        'WOLVOX MRP'
+    ];
+    const currentProg = lic.program_name || '';
+    const options = programList.map(prog => `<option value="${prog}" ${currentProg === prog ? 'selected' : ''}>${prog}</option>`);
+    if (currentProg && !programList.includes(currentProg)) {
+        options.unshift(`<option value="${escHtml(currentProg)}" selected>${escHtml(currentProg)}</option>`);
+    }
+
+    return `
+        <div class="license-block grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-slate-700" data-index="${index}">
+            <input type="hidden" name="license_id_${index}" value="${lic.id || ''}">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">${index + 1}. Program</label>
+                <select name="license_program_name_${index}" ${disabledAttr}
+                    class="license-program-select form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-gray-300">
+                    <option value="">-- Seçiniz --</option>
+                    ${options.join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Lisans Anahtarı / Key</label>
+                <input type="text" name="license_number_${index}" value="${escHtml(lic.license_number || '')}" placeholder="Örn: LIC-12345-ABCD" ${disabledAttr}
+                    class="license-key-input form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Şifre</label>
+                <input type="text" name="license_version_${index}" value="${escHtml(lic.version || '')}" placeholder="Örn: 123456" ${disabledAttr}
+                    class="license-password-input form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+    `;
+}
+
 function buildForm(c = {}, isReadOnly = false) {
-    const lic = c.licenses && c.licenses[0] ? c.licenses[0] : {};
     const disabledAttr = isReadOnly ? 'disabled' : '';
 
     return `
-        <!-- Gizli alanlar -->
-        <input type="hidden" name="license_id" value="${lic.id || ''}">
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <div>
@@ -285,18 +332,6 @@ function buildForm(c = {}, isReadOnly = false) {
                     class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Il</label>
-                <input type="text" name="province" value="${escHtml(c.province)}" ${disabledAttr}
-                    class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ilce</label>
-                <input type="text" name="district" value="${escHtml(c.district)}" ${disabledAttr}
-                    class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-
             <div class="sm:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adres</label>
                 <textarea name="address" rows="2" ${disabledAttr}
@@ -305,33 +340,20 @@ function buildForm(c = {}, isReadOnly = false) {
 
             <!-- Lisans Bilgileri Bölümü -->
             <div class="sm:col-span-2 mt-2 pt-4 border-t border-gray-100 dark:border-slate-700">
-                <h4 class="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-1.5">
+                <h4 class="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
                     </svg>
                     Lisans Bilgileri
                 </h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Program Adı</label>
-                        <input type="text" name="license_program_name" value="${escHtml(lic.program_name)}" placeholder="Örn: Nebim V3" ${disabledAttr}
-                            class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Lisans Anahtarı / Key</label>
-                        <input type="text" name="license_number" value="${escHtml(lic.license_number)}" placeholder="Örn: LIC-12345-ABCD" ${disabledAttr}
-                            class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Versiyon</label>
-                        <input type="text" name="license_version" value="${escHtml(lic.version)}" placeholder="Örn: 24.2.1" ${disabledAttr}
-                            class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Bakım Bitiş Tarihi</label>
-                        <input type="date" name="license_maintenance_end" value="${lic.maintenance_end || ''}" ${disabledAttr}
-                            class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
+                <div id="licenses-container" class="space-y-3">
+                    ${(() => {
+                        const licenses = [...(c.licenses || [])];
+                        if (licenses.length === 0 || licenses[licenses.length - 1].program_name) {
+                            licenses.push({});
+                        }
+                        return licenses.map((lic, index) => buildLicenseBlock(lic, index, disabledAttr)).join('');
+                    })()}
                 </div>
             </div>
 
@@ -496,6 +518,70 @@ function bindEvents(profile) {
         await saveCustomer(e.target, profile);
     });
 
+    // Dinamik Program Ekleme / Temizleme
+    document.addEventListener('change', e => {
+        const target = e.target;
+        if (!target.classList.contains('license-program-select')) return;
+
+        const container = document.getElementById('licenses-container');
+        if (!container) return;
+
+        const blocks = container.querySelectorAll('.license-block');
+        const totalBlocks = blocks.length;
+
+        const changedBlock = target.closest('.license-block');
+        const changedIndex = parseInt(changedBlock.dataset.index);
+
+        // Eğer sonuncu blokta seçim yapıldıysa, yeni bir satır ekle
+        if (changedIndex === totalBlocks - 1 && target.value) {
+            const nextIndex = totalBlocks;
+            const newBlockHtml = buildLicenseBlock({}, nextIndex, '');
+            container.insertAdjacentHTML('beforeend', newBlockHtml);
+            const newSelect = container.querySelector(`[name="license_program_name_${nextIndex}"]`);
+            if (newSelect) {
+                initSearchableSelect(newSelect);
+            }
+        }
+
+        // Fazla boş blokları temizleme
+        const currentBlocks = container.querySelectorAll('.license-block');
+        for (let i = currentBlocks.length - 1; i > 0; i--) {
+            const block = currentBlocks[i];
+            const selectVal = block.querySelector('.license-program-select')?.value;
+            const keyVal = block.querySelector('.license-key-input')?.value;
+            const passVal = block.querySelector('.license-password-input')?.value;
+            const isBlockEmpty = !selectVal && !keyVal && !passVal;
+
+            const prevBlock = currentBlocks[i - 1];
+            const prevSelectVal = prevBlock.querySelector('.license-program-select')?.value;
+            const prevKeyVal = prevBlock.querySelector('.license-key-input')?.value;
+            const prevPassVal = prevBlock.querySelector('.license-password-input')?.value;
+            const isPrevBlockEmpty = !prevSelectVal && !prevKeyVal && !prevPassVal;
+
+            if (isBlockEmpty && isPrevBlockEmpty) {
+                block.remove();
+            }
+        }
+
+        // Dinamik yeniden indeksleme ve etiket güncelleme
+        const remainingBlocks = container.querySelectorAll('.license-block');
+        remainingBlocks.forEach((block, idx) => {
+            block.dataset.index = idx;
+            const label = block.querySelector('label');
+            if (label) {
+                label.textContent = `${idx + 1}. Program`;
+            }
+            const hiddenId = block.querySelector('input[type="hidden"]');
+            if (hiddenId) hiddenId.name = `license_id_${idx}`;
+            const progSel = block.querySelector('.license-program-select');
+            if (progSel) progSel.name = `license_program_name_${idx}`;
+            const keyInput = block.querySelector('.license-key-input');
+            if (keyInput) keyInput.name = `license_number_${idx}`;
+            const passInput = block.querySelector('.license-password-input');
+            if (passInput) passInput.name = `license_version_${idx}`;
+        });
+    });
+
     bindImportEvents(profile);
 }
 
@@ -519,8 +605,6 @@ async function saveCustomer(form, profile) {
         tax_number:        fd.get('tax_number')?.trim()       || null,
         tax_office:        fd.get('tax_office')?.trim()       || null,
         phone:             fd.get('phone')?.trim()            || null,
-        province:          fd.get('province')?.trim()         || null,
-        district:          fd.get('district')?.trim()         || null,
         address:           fd.get('address')?.trim()          || null,
         authorized_person: fd.get('authorized_person')?.trim() || null,
         notes:             fd.get('notes')?.trim()            || null,
@@ -534,16 +618,33 @@ async function saveCustomer(form, profile) {
         return;
     }
 
-    const programName = fd.get('license_program_name')?.trim();
-    const licenseNumber = fd.get('license_number')?.trim();
-    const licenseVersion = fd.get('license_version')?.trim();
-    const licenseEnd = fd.get('license_maintenance_end') || null;
+    const licenseIndices = [];
+    for (const key of fd.keys()) {
+        if (key.startsWith('license_program_name_')) {
+            const idx = key.replace('license_program_name_', '');
+            licenseIndices.push(parseInt(idx));
+        }
+    }
 
-    if ((programName && !licenseNumber) || (!programName && licenseNumber)) {
-        showToast('Lisans kaydetmek için hem Program Adı hem de Lisans Anahtarı alanlarını doldurmalısınız.', 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        return;
+    const uniqueLicenseNumbers = new Set();
+    for (const idx of licenseIndices) {
+        const prog = fd.get(`license_program_name_${idx}`)?.trim();
+        const num = fd.get(`license_number_${idx}`)?.trim();
+        if ((prog && !num) || (!prog && num)) {
+            showToast(`${idx + 1}. Program için hem Program Seçmeli hem de Lisans Anahtarı girmelisiniz.`, 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+            return;
+        }
+        if (num) {
+            if (uniqueLicenseNumbers.has(num)) {
+                showToast(`"${num}" lisans anahtarını birden fazla program için kullanamazsınız.`, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                return;
+            }
+            uniqueLicenseNumbers.add(num);
+        }
     }
 
     try {
@@ -563,28 +664,35 @@ async function saveCustomer(form, profile) {
 
         if (error) throw error;
 
-        // Lisans kaydetme/güncelleme/silme adımı
-        const licenseId = fd.get('license_id');
-        if (licenseId && !programName && !licenseNumber) {
-            const { error: delErr } = await supabase.from('licenses').delete().eq('id', licenseId);
-            if (delErr) throw delErr;
-        } else if (programName && licenseNumber) {
-            const licensePayload = {
-                customer_id: customerId,
-                program_name: programName,
-                license_number: licenseNumber,
-                version: licenseVersion || null,
-                maintenance_end: licenseEnd || null,
-            };
+        // Her bir lisans kaydı için işlem yap
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        for (const idx of licenseIndices) {
+            const licId = fd.get(`license_id_${idx}`);
+            const prog = fd.get(`license_program_name_${idx}`)?.trim();
+            const num = fd.get(`license_number_${idx}`)?.trim();
+            const ver = fd.get(`license_version_${idx}`)?.trim();
 
-            let licErr;
-            if (licenseId) {
-                ({ error: licErr } = await supabase.from('licenses').update(licensePayload).eq('id', licenseId));
-            } else {
-                licensePayload.created_by = (await supabase.auth.getUser()).data.user?.id;
-                ({ error: licErr } = await supabase.from('licenses').insert(licensePayload));
+            if (licId && !prog && !num) {
+                // Lisans silinmiş
+                const { error: delErr } = await supabase.from('licenses').delete().eq('id', licId);
+                if (delErr) throw delErr;
+            } else if (prog && num) {
+                const licensePayload = {
+                    customer_id: customerId,
+                    program_name: prog,
+                    license_number: num,
+                    version: ver || null,
+                };
+
+                let licErr;
+                if (licId) {
+                    ({ error: licErr } = await supabase.from('licenses').update(licensePayload).eq('id', licId));
+                } else {
+                    licensePayload.created_by = userId;
+                    ({ error: licErr } = await supabase.from('licenses').insert(licensePayload));
+                }
+                if (licErr) throw licErr;
             }
-            if (licErr) throw licErr;
         }
 
         showToast(editId ? 'Müşteri bilgileri güncellendi.' : 'Müşteri ve lisans bilgileri oluşturuldu.', 'success');
@@ -1104,8 +1212,7 @@ function autoDetectMapping(headers) {
         notes: ['not', 'açıklama', 'aciklama', 'notes', 'description', 'notlar'],
         license_program_name: ['program', 'yazılım', 'lisans programı', 'program_adi'],
         license_number: ['lisans', 'key', 'anahtar', 'lisans anahtarı', 'license', 'lisans_no'],
-        license_version: ['versiyon', 'sürüm', 'version', 'program_surum'],
-        license_maintenance_end: ['bitiş', 'bakım bitiş', 'end', 'maintenance_end', 'lisans_bitis']
+        license_version: ['şifre', 'sifre', 'şifresi', 'sifresi', 'password', 'pass', 'versiyon', 'sürüm', 'version', 'program_surum']
     };
 
     for (const [field, keywords] of Object.entries(guessRules)) {
@@ -1165,10 +1272,6 @@ function saveMappingAndShowPreview() {
                     const excelCol = mapping[fid];
                     const rawVal = row[excelCol];
                     let displayVal = rawVal !== undefined ? rawVal : '';
-                    
-                    if (fid === 'license_maintenance_end' && displayVal) {
-                        displayVal = parseExcelDate(displayVal) || displayVal;
-                    }
                     
                     return `<td class="px-4 py-2 text-gray-750 dark:text-gray-350">${escHtml(String(displayVal))}</td>`;
                 }).join('')}
@@ -1264,7 +1367,6 @@ async function startImport(profile) {
             const licProgram = getMappedVal('license_program_name');
             const licNumber = getMappedVal('license_number');
             const licVersion = getMappedVal('license_version');
-            const licEndRaw = getMappedVal('license_maintenance_end');
             
             if (customerId && licProgram && licNumber) {
                 const licensePayload = {
@@ -1272,7 +1374,6 @@ async function startImport(profile) {
                     program_name: licProgram,
                     license_number: licNumber,
                     version: licVersion || null,
-                    maintenance_end: parseExcelDate(licEndRaw),
                     created_by: userId
                 };
                 
