@@ -135,6 +135,10 @@ function buildRow(p, currentProfile) {
                     <button data-action="toggle-active" data-id="${p.id}" data-active="${p.is_active}"
                         class="text-xs px-2.5 py-1.5 rounded-md border ${p.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50' : 'border-green-200 text-green-600 hover:bg-green-50'}">
                         ${p.is_active ? 'Pasife Al' : 'Aktife Al'}
+                    </button>
+                    <button data-action="delete-user" data-id="${p.id}"
+                        class="text-xs px-2.5 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50">
+                        Sil
                     </button>` : ''}
                 </div>
             </td>
@@ -235,6 +239,27 @@ function bindEvents(profile, profiles) {
                 .eq('id', id);
             if (error) { showToast(translateError(error), 'error'); return; }
             showToast(isActive ? 'Kullanıcı pasife alindi.' : 'Kullanıcı aktife alindi.', 'success');
+            await renderUsers({ profile });
+        }
+
+        if (action === 'delete-user' && user) {
+            if (id === profile.id) {
+                showToast('Kendi kullanıcınızı silemezsiniz!', 'error');
+                return;
+            }
+            if (!confirm(`"${user.full_name}" adlı kullanıcı silinecek. Emin misiniz?`)) return;
+            
+            const { error } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', id);
+                
+            if (error) {
+                showToast(translateError(error), 'error');
+                return;
+            }
+            
+            showToast('Kullanıcı başarıyla silindi.', 'success');
             await renderUsers({ profile });
         }
     });

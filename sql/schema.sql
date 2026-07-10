@@ -286,6 +286,27 @@ CREATE OR REPLACE TRIGGER trg_on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.fn_handle_new_user();
 
 -- ============================================================
+-- FONKSIYON: Profil silinince auth kullanicisini da sil
+-- SECURITY DEFINER ile auth.users'dan silebilir.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.fn_delete_auth_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    DELETE FROM auth.users WHERE id = OLD.id;
+    RETURN OLD;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trg_on_profile_deleted
+    AFTER DELETE ON public.profiles
+    FOR EACH ROW EXECUTE FUNCTION public.fn_delete_auth_user();
+
+-- ============================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================
 
@@ -322,6 +343,10 @@ CREATE POLICY pol_profiles_update
 CREATE POLICY pol_profiles_insert
     ON public.profiles FOR INSERT
     WITH CHECK (public.fn_get_role() = 'Yonetici');
+
+CREATE POLICY pol_profiles_delete
+    ON public.profiles FOR DELETE
+    USING (public.fn_get_role() = 'Yonetici');
 
 -- ---- customers ----
 CREATE POLICY pol_customers_select
