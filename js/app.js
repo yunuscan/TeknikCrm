@@ -187,6 +187,57 @@ function initUserMenu() {
 }
 
 // ---------------------------------------------------
+// Araclar menu dropdown toggle & copy logic
+// ---------------------------------------------------
+
+function initToolsMenu() {
+    const btn = document.getElementById('btn-tools-menu');
+    const dropdown = document.getElementById('tools-dropdown');
+    const copyBtn = document.getElementById('btn-copy-wolvox');
+    const copyIcon = document.getElementById('copy-icon');
+    const successIcon = document.getElementById('success-icon');
+
+    if (!btn || !dropdown) return;
+
+    btn.addEventListener('click', e => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', e => {
+        if (!dropdown.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async e => {
+            e.stopPropagation();
+            const textToCopy = "irm https://raw.githubusercontent.com/yunuscan/PosOtoKontrol/main/wolvox-check.ps1 | iex";
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                
+                // Show success feedback
+                if (copyIcon && successIcon) {
+                    copyIcon.classList.add('hidden');
+                    successIcon.classList.remove('hidden');
+                    setTimeout(() => {
+                        copyIcon.classList.remove('hidden');
+                        successIcon.classList.add('hidden');
+                    }, 2000);
+                }
+                
+                showToast('Komut panoya kopyalandı.', 'success');
+            } catch (err) {
+                console.error('Kopyalama hatası:', err);
+                showToast('Kopyalama başarısız oldu.', 'error');
+            }
+        });
+    }
+}
+
+// ---------------------------------------------------
 // Navigasyon event delegation (data-view linkleri)
 // ---------------------------------------------------
 
@@ -241,6 +292,7 @@ async function init() {
         applyMenuVisibility(profile.role);
         initSidebarToggle();
         initUserMenu();
+        initToolsMenu();
         initNavigation();
 
         // Oturum bitis olayini dinle
