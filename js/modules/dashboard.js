@@ -104,10 +104,10 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
            </div>`;
 
     return `
-        <div class="max-w-7xl mx-auto" id="dashboard-wrapper">
+        <div class="max-w-7xl mx-auto flex flex-col overflow-hidden" id="dashboard-wrapper" style="height: calc(100vh - 112px)">
 
             <!-- Başlık -->
-            <div class="mb-6 flex items-center justify-between">
+            <div class="mb-3 flex items-center justify-between flex-shrink-0">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
                     <p class="text-sm text-gray-500 mt-0.5">Hoşgeldiniz, ${escHtml(profile.full_name)}</p>
@@ -119,17 +119,17 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
             </div>
 
             <!-- BENTO GRID CONTAINER -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0 overflow-hidden mb-1">
                 
                 <!-- Özet Kartlar (Top Row, 12 cols span) -->
-                <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3 flex-shrink-0">
                     ${buildStatCard('Geciken Görevler', stats.overdueTasks, 'text-red-600', 'bg-red-50 text-red-500', iconTask())}
                     ${buildStatCard('Açık Destekler', stats.openSupports, 'text-orange-600', 'bg-orange-50 text-orange-500', iconSupport())}
                     ${buildStatCard('Bugünün Ajandası', stats.todayAgenda, 'text-indigo-600', 'bg-indigo-50 text-indigo-500', iconCalendar())}
                 </div>
 
                 <!-- Aktif Görevler Bento Box (span 8) -->
-                <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col" style="height:calc(100vh - 240px)">
+                <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-full min-h-0 overflow-hidden">
                     <div class="flex items-center justify-between mb-4 flex-shrink-0">
                         <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                             Görevler
@@ -150,10 +150,10 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
                 </div>
 
                 <!-- Sağ Kenar Bento Box (span 4) -->
-                <div class="lg:col-span-4 flex flex-col gap-4" style="height:calc(100vh - 240px)">
+                <div class="lg:col-span-4 flex flex-col gap-4 h-full min-h-0 overflow-hidden">
                     
                     <!-- Bugünün Ajandası -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-0 flex-1">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-0 flex-1 overflow-hidden">
                         <div class="flex items-center justify-between mb-4 flex-shrink-0">
                             <h2 class="text-base font-bold text-gray-800">Takvim</h2>
                             <div class="flex items-center gap-2">
@@ -172,7 +172,7 @@ function buildHTML(stats, activeTasksList, todayTasks, todayVisits, activeSuppor
                     </div>
 
                     <!-- Aktif Destek Kayıtları -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-0 flex-1">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-0 flex-1 overflow-hidden">
                         <div class="flex items-center justify-between mb-4 flex-shrink-0">
                             <h2 class="text-base font-bold text-gray-800">Teknik Destek</h2>
                             <div class="flex items-center gap-2">

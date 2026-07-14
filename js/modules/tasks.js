@@ -2,7 +2,7 @@ import { supabase }    from '../supabase-config.js';
 import {
     setContent, showToast, escHtml, formatDate,
     statusBadge, priorityBadge, openModal, closeModal,
-    buildOptions, translateError, setPageTitle,
+    buildOptions, translateError, setPageTitle, showConfirmModal,
 } from '../utils.js';
 import { buildTaskDetailModal, showTaskDetail } from './details.js';
 
@@ -33,8 +33,8 @@ export async function renderTasks({ profile }) {
     const customers = customersRes.data || [];
     const staff     = staffRes.data    || [];
 
-    const canWrite  = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
-    const canDelete = profile?.role === 'Yönetici';
+    const canWrite  = ['Yönetici', 'Yonetici', 'Teknik Servis', 'Satış Personeli', 'Satis Personeli'].includes(profile?.role);
+    const canDelete = ['Yönetici', 'Yonetici'].includes(profile?.role);
 
     setContent(buildHTML(tasks, customers, staff, canWrite, canDelete, profile));
     bindEvents(profile, customers, staff, tasks);
@@ -49,7 +49,7 @@ function buildHTML(tasks, customers, staff, canWrite, canDelete, profile) {
 
     const rows = tasks.length
         ? tasks.map(t => buildRow(t, today, canWrite, canDelete, profile)).join('')
-        : `<tr><td colspan="8" class="px-5 py-10 text-center text-sm text-gray-400">Görev bulunamadi.</td></tr>`;
+        : `<tr><td colspan="${7 + (canWrite ? 1 : 0) + (canDelete ? 1 : 0)}" class="px-5 py-10 text-center text-sm text-gray-400">Görev bulunamadi.</td></tr>`;
 
     const custOptions  = buildOptions(customers, 'id', c => c.company_name || `${c.first_name} ${c.last_name}`);
     const staffOptions = buildOptions(staff, 'id', s => s.full_name);
@@ -77,19 +77,20 @@ function buildHTML(tasks, customers, staff, canWrite, canDelete, profile) {
                 <button data-filter="Tamamlandı" class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-full border border-green-200 text-green-700 hover:bg-green-50">Tamamlandı</button>
             </div>
 
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden w-full max-w-full">
+                <div class="w-full overflow-x-hidden">
+                    <table class="w-full text-sm text-left table-fixed">
                         <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-5 py-3 font-medium">Başlık</th>
-                                <th class="px-5 py-3 font-medium">Açıklama</th>
-                                <th class="px-5 py-3 font-medium">Müşteri</th>
-                                <th class="px-5 py-3 font-medium">Atanan</th>
-                                <th class="px-5 py-3 font-medium">Öncelik</th>
-                                <th class="px-5 py-3 font-medium">Bitiş Tarihi</th>
-                                <th class="px-5 py-3 font-medium">Durum</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
+                                <th class="w-[20%] px-2.5 py-3 font-medium">Başlık</th>
+                                <th class="w-[22%] px-2.5 py-3 font-medium">Açıklama</th>
+                                <th class="w-[18%] px-2.5 py-3 font-medium">Müşteri</th>
+                                <th class="w-[12%] px-2.5 py-3 font-medium">Atanan</th>
+                                <th class="w-[8%] px-2.5 py-3 font-medium">Öncelik</th>
+                                <th class="w-[10%] px-2.5 py-3 font-medium">Bitiş Tarihi</th>
+                                <th class="w-[8%] px-2.5 py-3 font-medium">Durum</th>
+                                ${canWrite ? `<th class="w-[10%] px-2.5 py-3 font-medium text-right">İşlemler</th>` : ''}
+                                ${canDelete ? `<th class="w-[4%] px-2 py-3"></th>` : ''}
                             </tr>
                         </thead>
                         <tbody id="task-table-body" class="divide-y divide-gray-50">
@@ -128,9 +129,23 @@ function buildRow(t, today, canWrite, canDelete, profile) {
         <div class="flex items-center justify-end gap-2">
             <button data-action="edit" data-id="${t.id}"
                 class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Duzenle</button>
-            ${canDelete ? `<button data-action="delete" data-id="${t.id}" data-name="${escHtml(t.title)}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50">Sil</button>` : ''}
         </div>` : '';
+
+    const deleteColumn = canDelete ? `
+        <td class="px-2 py-3 text-right w-12" onclick="event.stopPropagation()">
+            <button
+                data-action="delete"
+                data-id="${t.id}"
+                data-name="${escHtml(t.title)}"
+                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 inline-flex items-center justify-center"
+                data-tooltip="Görevi Sil"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </td>
+    ` : '';
 
     let desc = t.description ? escHtml(t.description) : '-';
     if (desc.length > 55) {
@@ -138,15 +153,16 @@ function buildRow(t, today, canWrite, canDelete, profile) {
     }
 
     return `
-        <tr class="cursor-pointer ${isOverdue ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-slate-50'} transition-colors" data-status="${escHtml(t.status)}" data-id="${t.id}">
-            <td class="px-5 py-3 font-medium text-gray-800">${escHtml(t.title)}</td>
-            <td class="px-5 py-3 text-gray-500 text-xs max-w-[200px]">${desc}</td>
-            <td class="px-5 py-3 text-gray-600">${customer}</td>
-            <td class="px-5 py-3 text-gray-600">${assignee}</td>
-            <td class="px-5 py-3">${priorityBadge(t.priority)}</td>
-            <td class="px-5 py-3 ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-600'}">${formatDate(t.end_date)}</td>
-            <td class="px-5 py-3">${statusBadge(t.status)}</td>
-            ${canWrite ? `<td class="px-5 py-3">${actions}</td>` : ''}
+        <tr class="group cursor-pointer ${isOverdue ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-slate-50'} transition-colors" data-status="${escHtml(t.status)}" data-id="${t.id}">
+            <td class="px-2.5 py-3 font-medium text-gray-800 truncate" title="${escHtml(t.title)}">${escHtml(t.title)}</td>
+            <td class="px-2.5 py-3 text-gray-500 text-xs truncate" title="${desc}">${desc}</td>
+            <td class="px-2.5 py-3 text-gray-600 truncate" title="${customer}">${customer}</td>
+            <td class="px-2.5 py-3 text-gray-600 truncate" title="${assignee}">${assignee}</td>
+            <td class="px-2.5 py-3">${priorityBadge(t.priority)}</td>
+            <td class="px-2.5 py-3 ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-600'}">${formatDate(t.end_date)}</td>
+            <td class="px-2.5 py-3">${statusBadge(t.status)}</td>
+            ${canWrite ? `<td class="px-2.5 py-3 text-right">${actions}</td>` : ''}
+            ${deleteColumn}
         </tr>
     `;
 }
@@ -298,12 +314,42 @@ function bindEvents(profile, customers, staff, tasks) {
             }
 
             if (action === 'delete') {
+                e.stopPropagation();
                 const name = btn.dataset.name;
-                if (!confirm(`"${name}" görevi silinecek. Emin misiniz?`)) return;
-                const { error } = await supabase.from('tasks').delete().eq('id', id);
-                if (error) { showToast(translateError(error), 'error'); return; }
-                showToast('Görev silindi.', 'success');
-                await renderTasks({ profile });
+                const confirmed = await showConfirmModal({
+                    title: 'Görevi Sil',
+                    message: `"${name}" adlı görev kaydı kalıcı olarak silinecektir. Bu işlemi onaylıyor musunuz?`,
+                    confirmText: 'Evet, Sil',
+                    cancelText: 'Vazgeç'
+                });
+                if (confirmed) {
+                    const tr = btn.closest('tr');
+                    if (tr) {
+                        tr.style.transition = 'all 0.3s ease';
+                        tr.style.opacity = '0';
+                        tr.style.transform = 'translateX(20px)';
+                    }
+                    const { error } = await supabase.from('tasks').delete().eq('id', id);
+                    if (error) {
+                        showToast(translateError(error), 'error');
+                        if (tr) {
+                            tr.style.opacity = '';
+                            tr.style.transform = '';
+                        }
+                        return;
+                    }
+                    showToast('Görev silindi.', 'success');
+                    
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if (idx !== -1) tasks.splice(idx, 1);
+                    
+                    setTimeout(() => {
+                        const canWrite = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
+                        const canDelete = profile?.role === 'Yönetici';
+                        setContent(buildHTML(tasks, customers, staff, canWrite, canDelete, profile));
+                        bindEvents(profile, customers, staff, tasks);
+                    }, 300);
+                }
             }
             return;
         }

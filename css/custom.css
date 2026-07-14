@@ -1066,3 +1066,71 @@ tbody tr {
     background-color: rgba(49, 46, 129, 0.4) !important;
     color: #a5b4fc !important;
 }
+
+/* Satır içi silme butonu hover efekti */
+.delete-btn-hover {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.9);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+tr:hover .delete-btn-hover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+}
+
+/* Premium CSS-only Tooltip */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background-color: #1e293b;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+[data-tooltip]::before {
+    content: '';
+    position: absolute;
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+.dark-mode [data-tooltip]::after {
+    background-color: #334155;
+    color: #f8fafc;
+}
+.dark-mode [data-tooltip]::before {
+    border-color: #334155 transparent transparent transparent;
+}

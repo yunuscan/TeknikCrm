@@ -2,7 +2,7 @@ import { supabase }    from '../supabase-config.js';
 import {
     setContent, showToast, escHtml, formatDate, formatDateTime,
     openModal, closeModal, buildOptions, translateError, setPageTitle,
-    initSearchableSelect,
+    initSearchableSelect, showConfirmModal,
 } from '../utils.js';
 
 // ---------------------------------------------------
@@ -71,12 +71,12 @@ function renderList(profile) {
 
     const filtered = filterCustomers(allCustomers, searchTerm);
 
-    const canWrite = ['Yönetici', 'Satış Personeli', 'Teknik Servis'].includes(profile?.role);
-    const canDelete = profile?.role === 'Yönetici';
+    const canWrite = ['Yönetici', 'Yonetici', 'Satış Personeli', 'Satis Personeli', 'Teknik Servis'].includes(profile?.role);
+    const canDelete = ['Yönetici', 'Yonetici'].includes(profile?.role);
 
     const rows = filtered.length
         ? filtered.map(c => buildRow(c, canWrite, canDelete)).join('')
-        : `<tr><td colspan="8" class="px-5 py-10 text-center text-sm text-gray-400">Kayıt bulunamadi.</td></tr>`;
+        : `<tr><td colspan="${8 + (canDelete ? 1 : 0)}" class="px-5 py-10 text-center text-sm text-gray-400">Kayıt bulunamadi.</td></tr>`;
 
     setContent(`
         <div class="max-w-7xl mx-auto">
@@ -121,19 +121,20 @@ function renderList(profile) {
             </div>
 
             <!-- Tablo -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden w-full max-w-full">
+                <div class="w-full overflow-x-hidden">
+                    <table class="w-full text-sm text-left table-fixed">
                         <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-5 py-3 font-medium">Firma / Ad Soyad</th>
-                                <th class="px-5 py-3 font-medium">Telefon</th>
-                                <th class="px-5 py-3 font-medium">Il / Ilce</th>
-                                <th class="px-5 py-3 font-medium">Yetkili</th>
-                                <th class="px-5 py-3 font-medium">LİSANS BİLGİLERİ</th>
-                                <th class="px-5 py-3 font-medium">Durum</th>
-                                <th class="px-5 py-3 font-medium">Kayıt Tarihi</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
+                                <th class="w-[22%] px-3 py-3 font-medium">Firma / Ad Soyad</th>
+                                <th class="w-[12%] px-3 py-3 font-medium">Telefon</th>
+                                <th class="w-[13%] px-3 py-3 font-medium">Il / Ilce</th>
+                                <th class="w-[13%] px-3 py-3 font-medium">Yetkili</th>
+                                <th class="w-[18%] px-3 py-3 font-medium">LİSANS BİLGİLERİ</th>
+                                <th class="w-[9%] px-3 py-3 font-medium">Durum</th>
+                                <th class="w-[10%] px-3 py-3 font-medium">Kayıt Tarihi</th>
+                                ${canWrite ? `<th class="w-[10%] px-3 py-3 font-medium text-right">İşlemler</th>` : ''}
+                                ${canDelete ? `<th class="w-[4%] px-2 py-3"></th>` : ''}
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -158,11 +159,11 @@ function renderList(profile) {
 
 function buildRow(c, canWrite, canDelete) {
     const name = c.company_name
-        ? escHtml(c.company_name)
-        : `${escHtml(c.first_name)} ${escHtml(c.last_name)}`;
+        ? `<div class="font-medium text-gray-800 truncate" title="${escHtml(c.company_name)}">${escHtml(c.company_name)}</div>`
+        : `<div class="font-medium text-gray-800 truncate" title="${escHtml(c.first_name)} ${escHtml(c.last_name)}">${escHtml(c.first_name)} ${escHtml(c.last_name)}</div>`;
 
     const sub = c.company_name
-        ? `<span class="text-xs text-gray-400">${escHtml(c.first_name)} ${escHtml(c.last_name)}</span>`
+        ? `<span class="text-xs text-gray-400 block truncate" title="${escHtml(c.first_name)} ${escHtml(c.last_name)}">${escHtml(c.first_name)} ${escHtml(c.last_name)}</span>`
         : '';
 
     const location = [c.province, c.district].filter(Boolean).map(escHtml).join(' / ') || '-';
@@ -178,14 +179,23 @@ function buildRow(c, canWrite, canDelete) {
                 data-id="${c.id}"
                 class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
             >Duzenle</button>
-            ${canDelete ? `
+        </div>
+    ` : '';
+
+    const deleteColumn = canDelete ? `
+        <td class="px-3 py-3 text-right w-12" onclick="event.stopPropagation()">
             <button
                 data-action="delete"
                 data-id="${c.id}"
-                data-name="${escHtml(c.company_name || c.first_name)}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-            >Sil</button>` : ''}
-        </div>
+                data-name="${escHtml(c.company_name || (c.first_name + ' ' + c.last_name))}"
+                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 inline-flex items-center justify-center"
+                data-tooltip="Müşteriyi Sil"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </td>
     ` : '';
 
     const licensesList = c.licenses && c.licenses.length > 0
@@ -207,24 +217,25 @@ function buildRow(c, canWrite, canDelete) {
         : `<span class="text-gray-400 font-normal text-xs">-</span>`;
 
     return `
-        <tr data-id="${c.id}" class="hover:bg-slate-50 transition-colors cursor-pointer">
-            <td class="px-5 py-3">
-                <div class="font-medium text-gray-800">${name}</div>
+        <tr data-id="${c.id}" class="group hover:bg-slate-50 transition-colors cursor-pointer">
+            <td class="px-3 py-3 overflow-hidden">
+                ${name}
                 ${sub}
             </td>
-            <td class="px-5 py-3 text-gray-600">${escHtml(c.phone)}</td>
-            <td class="px-5 py-3 text-gray-600">${location}</td>
-            <td class="px-5 py-3 text-gray-600">${escHtml(c.authorized_person) || '-'}</td>
-            <td class="px-5 py-3">
-                <div class="flex flex-wrap gap-1 items-center">
+            <td class="px-3 py-3 text-gray-600 truncate" title="${escHtml(c.phone)}">${escHtml(c.phone)}</td>
+            <td class="px-3 py-3 text-gray-600 truncate" title="${location}">${location}</td>
+            <td class="px-3 py-3 text-gray-600 truncate" title="${escHtml(c.authorized_person) || '-'}">${escHtml(c.authorized_person) || '-'}</td>
+            <td class="px-3 py-3 overflow-hidden">
+                <div class="flex gap-1 items-center overflow-hidden whitespace-nowrap">
                     ${licensesList}
                 </div>
             </td>
-            <td class="px-5 py-3">
+            <td class="px-3 py-3">
                 <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${statusCls}">${statusTxt}</span>
             </td>
-            <td class="px-5 py-3 text-gray-500">${formatDateTime(c.created_at)}</td>
-            ${canWrite ? `<td class="px-5 py-3">${actions}</td>` : ''}
+            <td class="px-3 py-3 text-gray-500 truncate" title="${formatDateTime(c.created_at)}">${formatDateTime(c.created_at)}</td>
+            ${canWrite ? `<td class="px-3 py-3 text-right">${actions}</td>` : ''}
+            ${deleteColumn}
         </tr>
     `;
 }
@@ -493,8 +504,36 @@ function bindEvents(profile) {
             if (action === 'delete') {
                 e.stopPropagation();
                 const name = button.dataset.name;
-                if (!confirm(`"${name}" adli müşteri silinecek. Emin misiniz?`)) return;
-                await deleteCustomer(id, profile);
+                const confirmed = await showConfirmModal({
+                    title: 'Müşteriyi Sil',
+                    message: `"${name}" adlı müşteri kaydı kalıcı olarak silinecektir. Bu işlemi onaylıyor musunuz?`,
+                    confirmText: 'Evet, Sil',
+                    cancelText: 'Vazgeç'
+                });
+                if (confirmed) {
+                    const tr = button.closest('tr');
+                    if (tr) {
+                        tr.style.transition = 'all 0.3s ease';
+                        tr.style.opacity = '0';
+                        tr.style.transform = 'translateX(20px)';
+                    }
+                    
+                    const { error } = await supabase.from('customers').delete().eq('id', id);
+                    if (error) {
+                        showToast(translateError(error), 'error');
+                        if (tr) {
+                            tr.style.opacity = '';
+                            tr.style.transform = '';
+                        }
+                        return;
+                    }
+                    
+                    showToast('Müşteri silindi.', 'success');
+                    allCustomers = allCustomers.filter(c => c.id !== id);
+                    setTimeout(() => {
+                        renderList(profile);
+                    }, 300);
+                }
             } else if (action === 'edit') {
                 e.stopPropagation();
                 const customer = allCustomers.find(c => c.id === id);
@@ -709,16 +748,6 @@ async function saveCustomer(form, profile) {
 // ---------------------------------------------------
 // CRUD - Sil
 // ---------------------------------------------------
-
-async function deleteCustomer(id, profile) {
-    const { error } = await supabase.from('customers').delete().eq('id', id);
-    if (error) {
-        showToast(translateError(error), 'error');
-        return;
-    }
-    showToast('Müşteri silindi.', 'success');
-    await renderCustomers({ profile });
-}
 
 // ---------------------------------------------------
 // Filtreleme

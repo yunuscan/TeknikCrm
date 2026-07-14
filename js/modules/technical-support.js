@@ -2,6 +2,7 @@ import { supabase }    from '../supabase-config.js';
 import {
     setContent, showToast, escHtml, formatDateTime, formatPrice,
     statusBadge, openModal, closeModal, buildOptions, translateError, setPageTitle,
+    showConfirmModal,
 } from '../utils.js';
 import { buildSupportDetailModal, showSupportDetail } from './details.js';
 
@@ -32,9 +33,10 @@ export async function renderTechnicalSupport({ profile }) {
     const customers = customersRes.data || [];
     const staff     = staffRes.data     || [];
 
-    const canWrite = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
+    const canWrite = ['Yönetici', 'Yonetici', 'Teknik Servis'].includes(profile?.role);
+    const canDelete = ['Yönetici', 'Yonetici'].includes(profile?.role);
 
-    setContent(buildHTML(supports, customers, staff, canWrite, profile));
+    setContent(buildHTML(supports, customers, staff, canWrite, canDelete, profile));
     bindEvents(profile, customers, staff, supports);
 }
 
@@ -42,10 +44,10 @@ export async function renderTechnicalSupport({ profile }) {
 // HTML uretimi
 // ---------------------------------------------------
 
-function buildHTML(supports, customers, staff, canWrite, profile) {
+function buildHTML(supports, customers, staff, canWrite, canDelete, profile) {
     const rows = supports.length
-        ? supports.map(s => buildRow(s, canWrite, profile)).join('')
-        : `<tr><td colspan="9" class="px-5 py-10 text-center text-sm text-gray-400">Destek kaydi bulunamadi.</td></tr>`;
+        ? supports.map(s => buildRow(s, canWrite, canDelete, profile)).join('')
+        : `<tr><td colspan="${9 + (canWrite ? 1 : 0) + (canDelete ? 1 : 0)}" class="px-5 py-10 text-center text-sm text-gray-400">Destek kaydi bulunamadi.</td></tr>`;
 
     const custOptions  = buildOptions(customers, 'id', c => c.company_name || `${c.first_name} ${c.last_name}`);
     const staffOptions = buildOptions(staff, 'id', s => s.full_name);
@@ -80,21 +82,22 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
             </div>
 
             <!-- Tablo -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden w-full max-w-full">
+                <div class="w-full overflow-x-hidden">
+                    <table class="w-full text-sm text-left table-fixed">
                         <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-5 py-3 font-medium">No</th>
-                                <th class="px-5 py-3 font-medium">Müşteri</th>
-                                <th class="px-5 py-3 font-medium">Konu</th>
-                                <th class="px-5 py-3 font-medium">Arayan</th>
-                                <th class="px-5 py-3 font-medium">Atanan</th>
-                                <th class="px-5 py-3 font-medium">Başlangıç</th>
-                                <th class="px-5 py-3 font-medium">Fiyat</th>
-                                <th class="px-5 py-3 font-medium">Ödeme</th>
-                                <th class="px-5 py-3 font-medium">Durum</th>
-                                ${canWrite ? `<th class="px-5 py-3 font-medium text-right">İşlemler</th>` : ''}
+                                <th class="w-20 px-2 py-3 font-medium">No</th>
+                                <th class="px-2 py-3 font-medium">Müşteri</th>
+                                <th class="px-2 py-3 font-medium">Konu</th>
+                                <th class="w-28 px-2 py-3 font-medium">Arayan</th>
+                                <th class="w-28 px-2 py-3 font-medium">Atanan</th>
+                                <th class="w-36 px-2 py-3 font-medium">Başlangıç</th>
+                                <th class="w-24 px-2 py-3 font-medium">Fiyat</th>
+                                <th class="w-24 px-2 py-3 font-medium">Ödeme</th>
+                                <th class="w-28 px-2 py-3 font-medium">Durum</th>
+                                ${canWrite ? `<th class="w-36 px-2 py-3 font-medium text-right">İşlemler</th>` : ''}
+                                ${canDelete ? `<th class="w-12 px-2 py-3"></th>` : ''}
                             </tr>
                         </thead>
                         <tbody id="support-table-body" class="divide-y divide-gray-50">
@@ -115,48 +118,67 @@ function buildHTML(supports, customers, staff, canWrite, profile) {
 // Satir uretici
 // ---------------------------------------------------
 
-function buildRow(s, canWrite, profile) {
+function buildRow(s, canWrite, canDelete, profile) {
     const customer = s.customers
         ? escHtml(s.customers.company_name || `${s.customers.first_name} ${s.customers.last_name}`)
         : '-';
     const assignee = s.assigned?.full_name ? escHtml(s.assigned.full_name) : '-';
 
     const actions = canWrite ? `
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex items-center justify-end gap-2 whitespace-nowrap">
             <button data-action="detail" data-id="${s.id}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Detay</button>
+                class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 whitespace-nowrap">Detay</button>
             <button data-action="edit" data-id="${s.id}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-indigo-200 text-indigo-600 hover:bg-indigo-50">Duzenle</button>
+                class="text-xs px-2.5 py-1.5 rounded-md border border-indigo-200 text-indigo-600 hover:bg-indigo-50 whitespace-nowrap">Duzenle</button>
         </div>` : `
-        <div><button data-action="detail" data-id="${s.id}"
-            class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Detay</button></div>`;
+        <div class="flex items-center justify-end whitespace-nowrap">
+            <button data-action="detail" data-id="${s.id}"
+                class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 whitespace-nowrap">Detay</button>
+        </div>`;
 
     // Fiyat sütunu
     const priceCell = s.servis_tipi === 'Ucretli'
-        ? `<span class="text-sm font-semibold text-gray-700">${formatPrice(s.fiyat)}</span>`
-        : `<span class="badge-service-free">Ücretsiz</span>`;
+        ? `<span class="text-sm font-semibold text-gray-700 whitespace-nowrap">${formatPrice(s.fiyat)}</span>`
+        : `<span class="badge-service-free whitespace-nowrap">Ücretsiz</span>`;
 
     // Ödeme durumu sütunu
     const paymentCell = s.servis_tipi === 'Ucretli'
         ? (s.odeme_durumu === 'Odendi'
-            ? `<span class="badge-fee-paid">Ödendi</span>`
-            : `<span class="badge-fee-unpaid">Ödenmedi</span>`)
-        : `<span class="text-gray-300 text-sm select-none">—</span>`;
+            ? `<span class="badge-fee-paid whitespace-nowrap">Ödendi</span>`
+            : `<span class="badge-fee-unpaid whitespace-nowrap">Ödenmedi</span>`)
+        : `<span class="text-gray-300 text-sm select-none whitespace-nowrap">—</span>`;
+
+    const deleteColumn = canDelete ? `
+        <td class="px-2 py-3 text-right w-12" onclick="event.stopPropagation()">
+            <button
+                data-action="delete"
+                data-id="${s.id}"
+                data-no="${s.support_number}"
+                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 inline-flex items-center justify-center"
+                data-tooltip="Destek Kaydını Sil"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </td>
+    ` : '';
 
     return `
-        <tr class="cursor-pointer hover:bg-slate-50 transition-colors" data-status="${escHtml(s.status)}" data-id="${s.id}">
-            <td class="px-5 py-3">
-                <span class="support-number-badge text-indigo-700">#${s.support_number}</span>
+        <tr class="group cursor-pointer hover:bg-slate-50 transition-colors" data-status="${escHtml(s.status)}" data-id="${s.id}">
+            <td class="px-2 py-3 truncate">
+                <span class="support-number-badge text-indigo-700 whitespace-nowrap">#${s.support_number}</span>
             </td>
-            <td class="px-5 py-3 font-medium text-gray-800">${customer}</td>
-            <td class="px-5 py-3 text-gray-700 max-w-xs truncate">${escHtml(s.subject)}</td>
-            <td class="px-5 py-3 text-gray-600">${escHtml(s.caller_name)}</td>
-            <td class="px-5 py-3 text-gray-600">${assignee}</td>
-            <td class="px-5 py-3 text-gray-500 text-xs">${formatDateTime(s.start_time)}</td>
-            <td class="px-5 py-3"><div class="flex items-center h-full">${priceCell}</div></td>
-            <td class="px-5 py-3"><div class="flex items-center h-full">${paymentCell}</div></td>
-            <td class="px-5 py-3">${statusBadge(s.status)}</td>
-            ${canWrite ? `<td class="px-5 py-3">${actions}</td>` : ''}
+            <td class="px-2 py-3 font-medium text-gray-800 truncate" title="${customer}">${customer}</td>
+            <td class="px-2 py-3 text-gray-700 truncate" title="${escHtml(s.subject)}">${escHtml(s.subject)}</td>
+            <td class="px-2 py-3 text-gray-600 truncate" title="${escHtml(s.caller_name)}">${escHtml(s.caller_name)}</td>
+            <td class="px-2 py-3 text-gray-600 truncate" title="${assignee}">${assignee}</td>
+            <td class="px-2 py-3 text-gray-500 text-xs truncate" title="${formatDateTime(s.start_time)}">${formatDateTime(s.start_time)}</td>
+            <td class="px-2 py-3 whitespace-nowrap">${priceCell}</td>
+            <td class="px-2 py-3 whitespace-nowrap">${paymentCell}</td>
+            <td class="px-2 py-3 whitespace-nowrap">${statusBadge(s.status)}</td>
+            ${canWrite ? `<td class="px-2 py-3 whitespace-nowrap text-right">${actions}</td>` : ''}
+            ${deleteColumn}
         </tr>
     `;
 }
@@ -341,6 +363,44 @@ function bindEvents(profile, customers, staff, supports) {
                 fillSupportForm(document.getElementById('support-modal-form'), support);
                 document.getElementById('support-modal-form').dataset.editId = id;
                 openModal('support-modal');
+            }
+
+            if (action === 'delete') {
+                e.stopPropagation();
+                const confirmed = await showConfirmModal({
+                    title: 'Destek Kaydını Sil',
+                    message: `#${btn.dataset.no} numaralı teknik destek kaydı kalıcı olarak silinecektir. Bu işlemi onaylıyor musunuz?`,
+                    confirmText: 'Evet, Sil',
+                    cancelText: 'Vazgeç'
+                });
+                if (confirmed) {
+                    const tr = btn.closest('tr');
+                    if (tr) {
+                        tr.style.transition = 'all 0.3s ease';
+                        tr.style.opacity = '0';
+                        tr.style.transform = 'translateX(20px)';
+                    }
+                    const { error } = await supabase.from('technical_supports').delete().eq('id', id);
+                    if (error) {
+                        showToast(translateError(error), 'error');
+                        if (tr) {
+                            tr.style.opacity = '';
+                            tr.style.transform = '';
+                        }
+                        return;
+                    }
+                    showToast('Destek kaydı başarıyla silindi.', 'success');
+                    
+                    const idx = supports.findIndex(s => s.id === id);
+                    if (idx !== -1) supports.splice(idx, 1);
+                    
+                    setTimeout(() => {
+                        const canWrite = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
+                        const canDelete = profile?.role === 'Yönetici';
+                        setContent(buildHTML(supports, customers, staff, canWrite, canDelete, profile));
+                        bindEvents(profile, customers, staff, supports);
+                    }, 300);
+                }
             }
             return;
         }

@@ -2,6 +2,7 @@ import { supabase }    from '../supabase-config.js';
 import {
     setContent, showToast, escHtml, formatDate,
     openModal, closeModal, translateError, setPageTitle,
+    showConfirmModal,
 } from '../utils.js';
 
 // ---------------------------------------------------
@@ -128,17 +129,40 @@ function buildRow(p, currentProfile) {
                 <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${statusCls}">${statusTxt}</span>
             </td>
             <td class="px-5 py-3">
-                <div class="flex items-center justify-end gap-2">
+                <div class="flex items-center justify-end gap-1">
                     <button data-action="edit-user" data-id="${p.id}"
-                        class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Duzenle</button>
-                    ${!isSelf ? `
-                    <button data-action="toggle-active" data-id="${p.id}" data-active="${p.is_active}"
-                        class="text-xs px-2.5 py-1.5 rounded-md border ${p.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50' : 'border-green-200 text-green-600 hover:bg-green-50'}">
-                        ${p.is_active ? 'Pasife Al' : 'Aktife Al'}
+                        class="text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 p-2 rounded-lg transition-colors flex items-center justify-center"
+                        data-tooltip="Düzenle"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
                     </button>
+                    ${!isSelf ? `
+                    ${p.is_active ? `
+                    <button data-action="toggle-active" data-id="${p.id}" data-active="true"
+                        class="text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 p-2 rounded-lg transition-colors flex items-center justify-center"
+                        data-tooltip="Pasife Al"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                        </svg>
+                    </button>` : `
+                    <button data-action="toggle-active" data-id="${p.id}" data-active="false"
+                        class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-2 rounded-lg transition-colors flex items-center justify-center"
+                        data-tooltip="Aktife Al"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.97L7.862 19.897C7.112 20.31 6 19.77 6 18.913V5.653z" />
+                        </svg>
+                    </button>`}
                     <button data-action="delete-user" data-id="${p.id}"
-                        class="text-xs px-2.5 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50">
-                        Sil
+                        class="text-red-650 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 p-2 rounded-lg transition-colors flex items-center justify-center"
+                        data-tooltip="Sil"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                     </button>` : ''}
                 </div>
             </td>
@@ -247,7 +271,14 @@ function bindEvents(profile, profiles) {
                 showToast('Kendi kullanıcınızı silemezsiniz!', 'error');
                 return;
             }
-            if (!confirm(`"${user.full_name}" adlı kullanıcı silinecek. Emin misiniz?`)) return;
+            
+            const confirmed = await showConfirmModal({
+                title: 'Kullanıcıyı Sil',
+                message: `"${user.full_name}" adlı kullanıcı kaydı kalıcı olarak silinecektir. Bu işlemi onaylıyor musunuz?`,
+                confirmText: 'Evet, Sil',
+                cancelText: 'Vazgeç'
+            });
+            if (!confirmed) return;
             
             const { error } = await supabase
                 .from('profiles')

@@ -441,3 +441,65 @@ if (typeof document !== 'undefined') {
     });
 }
 
+export function showConfirmModal({ title, message, confirmText = 'Evet, Sil', cancelText = 'İptal' }) {
+    return new Promise((resolve) => {
+        const modalId = `confirm-modal-${Date.now()}`;
+        const modalEl = document.createElement('div');
+        modalEl.id = modalId;
+        modalEl.className = 'fixed inset-0 z-[100] flex items-center justify-center modal-overlay';
+        modalEl.setAttribute('role', 'dialog');
+        modalEl.setAttribute('aria-modal', 'true');
+
+        modalEl.innerHTML = `
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden transform transition-all duration-200 scale-95 opacity-0" id="${modalId}-content">
+                <div class="p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white">${escHtml(title)}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">${escHtml(message)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
+                    <button type="button" id="${modalId}-cancel"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-650 transition-colors">${escHtml(cancelText)}</button>
+                    <button type="button" id="${modalId}-confirm"
+                        class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">${escHtml(confirmText)}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalEl);
+        document.body.classList.add('overflow-hidden');
+
+        const contentEl = document.getElementById(`${modalId}-content`);
+        // Trigger transition
+        setTimeout(() => {
+            contentEl.classList.remove('scale-95', 'opacity-0');
+            contentEl.classList.add('scale-100', 'opacity-100');
+        }, 20);
+
+        function close(result) {
+            contentEl.classList.remove('scale-100', 'opacity-100');
+            contentEl.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modalEl.remove();
+                document.body.classList.remove('overflow-hidden');
+                resolve(result);
+            }, 150);
+        }
+
+        document.getElementById(`${modalId}-cancel`).addEventListener('click', () => close(false));
+        document.getElementById(`${modalId}-confirm`).addEventListener('click', () => close(true));
+        
+        modalEl.addEventListener('click', (e) => {
+            if (e.target === modalEl) close(false);
+        });
+    });
+}
+

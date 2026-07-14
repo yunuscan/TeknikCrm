@@ -534,6 +534,11 @@ export async function showSupportDetail(s, profile) {
         `;
     }
 
+    const footerCloseBtn = document.querySelector('#detail-modal-footer [data-close-modal="support-detail-modal"]');
+    if (footerCloseBtn) {
+        footerCloseBtn.addEventListener('click', () => closeModal('support-detail-modal'));
+    }
+
     openModal('support-detail-modal');
 
     // Add log event listener
