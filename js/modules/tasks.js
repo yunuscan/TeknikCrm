@@ -132,7 +132,7 @@ function buildRow(t, today, canWrite, canDelete, profile) {
         </div>` : '';
 
     const deleteColumn = canDelete ? `
-        <td class="px-2 py-3 text-right w-12" onclick="event.stopPropagation()">
+        <td class="px-2 py-3 text-right w-12">
             <button
                 data-action="delete"
                 data-id="${t.id}"
@@ -314,6 +314,7 @@ function bindEvents(profile, customers, staff, tasks) {
             }
 
             if (action === 'delete') {
+                console.log('Silme tetiklendi, ID:', id);
                 e.stopPropagation();
                 const name = btn.dataset.name;
                 const confirmed = await showConfirmModal({
@@ -329,16 +330,32 @@ function bindEvents(profile, customers, staff, tasks) {
                         tr.style.opacity = '0';
                         tr.style.transform = 'translateX(20px)';
                     }
-                    const { error } = await supabase.from('tasks').delete().eq('id', id);
-                    if (error) {
-                        showToast(translateError(error), 'error');
+                    try {
+                        const { error } = await supabase.from('tasks').delete().eq('id', id);
+                        if (error) {
+                            console.error('Supabase Görev Silme Hatası:', error);
+                            
+                            let errorMsg = translateError(error);
+                            if (error.code === '23503') errorMsg = 'Bu görev başka verilerle ilişkili olduğu için silinemez (Yabancı Anahtar Hatası).';
+                            else if (error.code === '42501') errorMsg = 'Bu işlemi yapmaya yetkiniz yok (Yönetici yetkisi gerektirir).';
+                            
+                            showToast(errorMsg, 'error');
+                            if (tr) {
+                                tr.style.opacity = '';
+                                tr.style.transform = '';
+                            }
+                            return;
+                        }
+                        showToast('Görev başarıyla silindi.', 'success');
+                    } catch (err) {
+                        console.error('Görev silme sırasında istisna:', err);
+                        showToast('Beklenmeyen bir hata oluştu.', 'error');
                         if (tr) {
                             tr.style.opacity = '';
                             tr.style.transform = '';
                         }
                         return;
                     }
-                    showToast('Görev silindi.', 'success');
                     
                     const idx = tasks.findIndex(t => t.id === id);
                     if (idx !== -1) tasks.splice(idx, 1);

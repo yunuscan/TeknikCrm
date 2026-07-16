@@ -58,7 +58,7 @@ function buildHTML(profiles, currentProfile) {
                                 <th class="px-5 py-3 font-medium text-right">İşlemler</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
+                        <tbody id="users-table-body" class="divide-y divide-gray-50">
                             ${rows}
                         </tbody>
                     </table>
@@ -233,12 +233,16 @@ function bindEvents(profile, profiles) {
         btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
     });
 
-    document.querySelector('tbody')?.addEventListener('click', async e => {
+    document.getElementById('users-table-body')?.addEventListener('click', async e => {
         const btn    = e.target.closest('[data-action]');
         if (!btn) return;
         const id     = btn.dataset.id;
         const action = btn.dataset.action;
         const user   = profiles.find(p => p.id === id);
+
+        if (action === 'delete-user') {
+            console.log('Silme tetiklendi, ID:', id);
+        }
 
         if (action === 'edit-user' && user) {
             document.getElementById('user-modal-form').dataset.editId = id;
@@ -267,6 +271,7 @@ function bindEvents(profile, profiles) {
         }
 
         if (action === 'delete-user' && user) {
+            console.log('Silme tetiklendi, ID:', id);
             if (id === profile.id) {
                 showToast('Kendi kullanıcınızı silemezsiniz!', 'error');
                 return;
@@ -280,18 +285,29 @@ function bindEvents(profile, profiles) {
             });
             if (!confirmed) return;
             
-            const { error } = await supabase
-                .from('profiles')
-                .delete()
-                .eq('id', id);
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .delete()
+                    .eq('id', id);
+                    
+                if (error) {
+                    console.error('Supabase Kullanıcı Silme Hatası:', error);
+                    
+                    let errorMsg = translateError(error);
+                    if (error.code === '23503') errorMsg = 'Bu kullanıcı görev veya ziyaret gibi işlemlere atanmış olduğu için silinemez (Yabancı Anahtar Hatası).';
+                    else if (error.code === '42501') errorMsg = 'Kullanıcı silme işlemi için yetkiniz bulunmamaktadır.';
+                    
+                    showToast(errorMsg, 'error');
+                    return;
+                }
                 
-            if (error) {
-                showToast(translateError(error), 'error');
-                return;
+                showToast('Kullanıcı başarıyla silindi.', 'success');
+                await renderUsers({ profile });
+            } catch (err) {
+                console.error('Kullanıcı silme sırasında istisna:', err);
+                showToast('Beklenmeyen bir hata oluştu.', 'error');
             }
-            
-            showToast('Kullanıcı başarıyla silindi.', 'success');
-            await renderUsers({ profile });
         }
     });
 

@@ -137,7 +137,7 @@ function renderList(profile) {
                                 ${canDelete ? `<th class="w-[4%] px-2 py-3"></th>` : ''}
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
+                        <tbody id="customers-table-body" class="divide-y divide-gray-50">
                             ${rows}
                         </tbody>
                     </table>
@@ -183,7 +183,7 @@ function buildRow(c, canWrite, canDelete) {
     ` : '';
 
     const deleteColumn = canDelete ? `
-        <td class="px-3 py-3 text-right w-12" onclick="event.stopPropagation()">
+        <td class="px-3 py-3 text-right w-12">
             <button
                 data-action="delete"
                 data-id="${c.id}"
@@ -492,7 +492,7 @@ function bindEvents(profile) {
     });
 
     // Tablo satırlarına ve butonlarına tıklama olayı
-    document.querySelector('tbody')?.addEventListener('click', async e => {
+    document.getElementById('customers-table-body')?.addEventListener('click', async e => {
         const target = e.target;
 
         // Buton veya popover tetikleyicisi kontrolü
@@ -502,6 +502,7 @@ function bindEvents(profile) {
             const id = button.dataset.id;
             
             if (action === 'delete') {
+                console.log('Silme tetiklendi, ID:', id);
                 e.stopPropagation();
                 const name = button.dataset.name;
                 const confirmed = await showConfirmModal({
@@ -518,17 +519,32 @@ function bindEvents(profile) {
                         tr.style.transform = 'translateX(20px)';
                     }
                     
-                    const { error } = await supabase.from('customers').delete().eq('id', id);
-                    if (error) {
-                        showToast(translateError(error), 'error');
+                    try {
+                        const { error } = await supabase.from('customers').delete().eq('id', id);
+                        if (error) {
+                            console.error('Supabase Müşteri Silme Hatası:', error);
+                            
+                            let errorMsg = translateError(error);
+                            if (error.code === '23503') errorMsg = 'Bu müşteri başka verilere (Görev, Ziyaret vb.) bağlı olduğu için silinemez (Yabancı Anahtar Hatası).';
+                            else if (error.code === '42501') errorMsg = 'Bu işlemi yapmaya yetkiniz yok (Yönetici yetkisi gerektirir).';
+                            
+                            showToast(errorMsg, 'error');
+                            if (tr) {
+                                tr.style.opacity = '';
+                                tr.style.transform = '';
+                            }
+                            return;
+                        }
+                        showToast('Müşteri silindi.', 'success');
+                    } catch (err) {
+                        console.error('Müşteri silme sırasında istisna:', err);
+                        showToast('Beklenmeyen bir hata oluştu.', 'error');
                         if (tr) {
                             tr.style.opacity = '';
                             tr.style.transform = '';
                         }
                         return;
                     }
-                    
-                    showToast('Müşteri silindi.', 'success');
                     allCustomers = allCustomers.filter(c => c.id !== id);
                     setTimeout(() => {
                         renderList(profile);

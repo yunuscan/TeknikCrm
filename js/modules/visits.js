@@ -286,12 +286,28 @@ function bindEvents(profile, customers, staff, visits) {
             }
 
             if (action === 'delete') {
+                console.log('Silme tetiklendi, ID:', id);
                 const name = btn.dataset.name;
                 if (!confirm(`"${name}" ziyareti silinecek. Emin misiniz?`)) return;
-                const { error } = await supabase.from('visits').delete().eq('id', id);
-                if (error) { showToast(translateError(error), 'error'); return; }
-                showToast('Ziyaret silindi.', 'success');
-                await renderVisits({ profile });
+                
+                try {
+                    const { error } = await supabase.from('visits').delete().eq('id', id);
+                    if (error) {
+                        console.error('Supabase Ziyaret Silme Hatası:', error);
+                        
+                        let errorMsg = translateError(error);
+                        if (error.code === '23503') errorMsg = 'Bu ziyaret başka kayıtlara bağlı olduğu için silinemez (Yabancı Anahtar Hatası).';
+                        else if (error.code === '42501') errorMsg = 'Bu işlemi yapmaya yetkiniz yok (Yönetici yetkisi gerektirir).';
+                        
+                        showToast(errorMsg, 'error');
+                        return;
+                    }
+                    showToast('Ziyaret silindi.', 'success');
+                    await renderVisits({ profile });
+                } catch (err) {
+                    console.error('Ziyaret silme sırasında istisna:', err);
+                    showToast('Beklenmeyen bir hata oluştu.', 'error');
+                }
             }
             return;
         }

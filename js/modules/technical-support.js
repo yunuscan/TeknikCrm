@@ -149,7 +149,7 @@ function buildRow(s, canWrite, canDelete, profile) {
         : `<span class="text-gray-300 text-sm select-none whitespace-nowrap">—</span>`;
 
     const deleteColumn = canDelete ? `
-        <td class="px-2 py-3 text-right w-12" onclick="event.stopPropagation()">
+        <td class="px-2 py-3 text-right w-12">
             <button
                 data-action="delete"
                 data-id="${s.id}"
@@ -366,6 +366,7 @@ function bindEvents(profile, customers, staff, supports) {
             }
 
             if (action === 'delete') {
+                console.log('Silme tetiklendi, ID:', id);
                 e.stopPropagation();
                 const confirmed = await showConfirmModal({
                     title: 'Destek Kaydını Sil',
@@ -380,16 +381,32 @@ function bindEvents(profile, customers, staff, supports) {
                         tr.style.opacity = '0';
                         tr.style.transform = 'translateX(20px)';
                     }
-                    const { error } = await supabase.from('technical_supports').delete().eq('id', id);
-                    if (error) {
-                        showToast(translateError(error), 'error');
+                    try {
+                        const { error } = await supabase.from('technical_supports').delete().eq('id', id);
+                        if (error) {
+                            console.error('Supabase Silme Hatası:', error);
+                            
+                            let errorMsg = translateError(error);
+                            if (error.code === '23503') errorMsg = 'Bu kayıt başka verilerle ilişkili olduğu için silinemez (Yabancı Anahtar Hatası).';
+                            else if (error.code === '42501') errorMsg = 'Bu işlemi yapmaya yetkiniz yok (Yönetici yetkisi gerektirir).';
+                            
+                            showToast(errorMsg, 'error');
+                            if (tr) {
+                                tr.style.opacity = '';
+                                tr.style.transform = '';
+                            }
+                            return;
+                        }
+                        showToast('Destek kaydı başarıyla silindi.', 'success');
+                    } catch (err) {
+                        console.error('Silme işlemi sırasında beklenmeyen hata (İstisna):', err);
+                        showToast('Beklenmeyen bir hata oluştu.', 'error');
                         if (tr) {
                             tr.style.opacity = '';
                             tr.style.transform = '';
                         }
                         return;
                     }
-                    showToast('Destek kaydı başarıyla silindi.', 'success');
                     
                     const idx = supports.findIndex(s => s.id === id);
                     if (idx !== -1) supports.splice(idx, 1);

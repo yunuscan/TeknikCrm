@@ -5,7 +5,9 @@
   "type": "module",
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.110.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "ws": "^8.21.0"
   }
 }
