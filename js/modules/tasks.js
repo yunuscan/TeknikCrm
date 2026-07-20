@@ -120,7 +120,7 @@ function buildRow(t, today, canWrite, canDelete, profile) {
     const isOverdue = t.end_date && t.end_date < today && t.status !== 'Tamamlandı';
 
     const canEdit = canWrite && (
-        profile?.role === 'Yönetici' ||
+        ['Yönetici', 'Yonetici'].includes(profile?.role) ||
         t.assigned?.id === profile?.id ||
         t.customers // baska bir yetkilendirme gerekebilir
     );
@@ -361,8 +361,8 @@ function bindEvents(profile, customers, staff, tasks) {
                     if (idx !== -1) tasks.splice(idx, 1);
                     
                     setTimeout(() => {
-                        const canWrite = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
-                        const canDelete = profile?.role === 'Yönetici';
+                        const canWrite = ['Yönetici', 'Yonetici', 'Teknik Servis', 'Satış Personeli', 'Satis Personeli'].includes(profile?.role);
+                        const canDelete = ['Yönetici', 'Yonetici'].includes(profile?.role);
                         setContent(buildHTML(tasks, customers, staff, canWrite, canDelete, profile));
                         bindEvents(profile, customers, staff, tasks);
                     }, 300);
@@ -376,7 +376,7 @@ function bindEvents(profile, customers, staff, tasks) {
             const id = row.dataset.id;
             const task = tasks.find(t => t.id === id);
             if (task) {
-                const canWrite = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
+                const canWrite = ['Yönetici', 'Yonetici', 'Teknik Servis', 'Satış Personeli', 'Satis Personeli'].includes(profile?.role);
                 if (canWrite) {
                     document.getElementById('task-modal-title').textContent = 'Görev Duzenle';
                     document.getElementById('task-modal-form').dataset.editId = id;

@@ -31,8 +31,8 @@ export async function renderVisits({ profile }) {
     const customers = customersRes.data || [];
     const staff     = staffRes.data     || [];
 
-    const canWrite  = ['Yönetici', 'Teknik Servis', 'Satış Personeli'].includes(profile?.role);
-    const canDelete = profile?.role === 'Yönetici';
+    const canWrite  = ['Yönetici', 'Yonetici', 'Teknik Servis', 'Satış Personeli', 'Satis Personeli'].includes(profile?.role);
+    const canDelete = ['Yönetici', 'Yonetici'].includes(profile?.role);
 
     setContent(buildHTML(visits, customers, staff, canWrite, canDelete, profile));
     bindEvents(profile, customers, staff, visits);

@@ -206,7 +206,7 @@ export async function showSupportDetail(s, profile) {
         </div>
     `).join('') || '<p class="text-sm text-gray-400">Log girisi bulunmamaktadir.</p>';
 
-    const canLog = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
+    const canLog = ['Yönetici', 'Yonetici', 'Teknik Servis'].includes(profile?.role);
     const isAdmin = ['Yönetici', 'Yonetici'].includes(profile?.role);
 
     document.getElementById('detail-modal-title').textContent = `Destek #${s.support_number}`;

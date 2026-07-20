@@ -478,7 +478,17 @@ function bindEvents(profile) {
     // Arama
     document.getElementById('search-input')?.addEventListener('input', e => {
         searchTerm = e.target.value;
-        renderList(profile);
+        const filtered = filterCustomers(allCustomers, searchTerm);
+        const canWrite = ['Yönetici', 'Yonetici', 'Satış Personeli', 'Satis Personeli', 'Teknik Servis'].includes(profile?.role);
+        const canDelete = ['Yönetici', 'Yonetici'].includes(profile?.role);
+        const rows = filtered.length
+            ? filtered.map(c => buildRow(c, canWrite, canDelete)).join('')
+            : `<tr><td colspan="${8 + (canDelete ? 1 : 0)}" class="px-5 py-10 text-center text-sm text-gray-400">Kayıt bulunamadi.</td></tr>`;
+        
+        const tbody = document.getElementById('customers-table-body');
+        if (tbody) {
+            tbody.innerHTML = rows;
+        }
     });
 
     // Yeni müşteri butonu

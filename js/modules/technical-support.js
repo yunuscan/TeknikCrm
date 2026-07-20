@@ -412,8 +412,8 @@ function bindEvents(profile, customers, staff, supports) {
                     if (idx !== -1) supports.splice(idx, 1);
                     
                     setTimeout(() => {
-                        const canWrite = ['Yönetici', 'Teknik Servis'].includes(profile?.role);
-                        const canDelete = profile?.role === 'Yönetici';
+                        const canWrite = ['Yönetici', 'Yonetici', 'Teknik Servis'].includes(profile?.role);
+                        const canDelete = ['Yönetici', 'Yonetici'].includes(profile?.role);
                         setContent(buildHTML(supports, customers, staff, canWrite, canDelete, profile));
                         bindEvents(profile, customers, staff, supports);
                     }, 300);
