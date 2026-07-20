@@ -175,10 +175,21 @@ function buildRow(c, canWrite, canDelete) {
     const actions = canWrite ? `
         <div class="flex items-center justify-end gap-2">
             <button
+                data-action="diagram"
+                data-id="${c.id}"
+                data-name="${escHtml(c.company_name || (c.first_name + ' ' + c.last_name))}"
+                class="opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded-full border border-gray-200 text-gray-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 flex items-center justify-center shadow-sm bg-transparent"
+                title="İş Akışı / Diyagram"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                </svg>
+            </button>
+            <button
                 data-action="edit"
                 data-id="${c.id}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
-            >Duzenle</button>
+                class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+            >Düzenle</button>
         </div>
     ` : '';
 
@@ -554,6 +565,12 @@ function bindEvents(profile) {
                 e.stopPropagation();
                 const customer = allCustomers.find(c => c.id === id);
                 if (customer) openCustomerDetailsModal(customer, profile);
+            } else if (action === 'diagram') {
+                e.stopPropagation();
+                const name = button.dataset.name;
+                import('./diagram.js').then(module => {
+                    module.openDiagramModal(id, name);
+                });
             }
             return;
         }
