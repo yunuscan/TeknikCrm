@@ -25,104 +25,194 @@ export default async function handler(req, res) {
         const supabase = getSupabaseClient();
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-        // --- Supabase'den bağlamsal veri topla ---
+        // --- Supabase'den sadece hafif sayaç bilgileri (counts) al ---
         const [
-            resCustomers,
-            resSupports,
-            resTasks,
-            resVisits,
-            resLicenses,
+            countCustomers,
+            countSupports,
+            countTasks,
+            countVisits,
+            countLicenses
         ] = await Promise.all([
-            supabase.from('customers')
-                .select('id, first_name, last_name, company_name, phone, province, district, is_active, notes')
-                .eq('is_active', true)
-                .order('company_name')
-                .limit(200),
-            supabase.from('technical_supports')
-                .select('id, support_number, subject, status, caller_name, servis_tipi, start_time, end_time, description, resolution, customers(company_name, first_name, last_name)')
-                .order('created_at', { ascending: false })
-                .limit(100),
-            supabase.from('tasks')
-                .select('id, title, description, status, priority, start_date, end_date, customers(company_name, first_name, last_name), assigned:profiles!tasks_assigned_to_fkey(full_name)')
-                .order('end_date', { ascending: true })
-                .limit(100),
-            supabase.from('visits')
-                .select('id, visit_date, visit_time, status, purpose, notes, work_done, result, customers(company_name, first_name, last_name), assigned:profiles!visits_assigned_to_fkey(full_name)')
-                .order('visit_date', { ascending: false })
-                .limit(100),
-            supabase.from('licenses')
-                .select('id, license_number, program_name, version, maintenance_end, customers(company_name, first_name, last_name)')
-                .order('maintenance_end', { ascending: true })
-                .limit(100),
+            supabase.from('customers').select('*', { count: 'exact', head: true }).eq('is_active', true),
+            supabase.from('technical_supports').select('*', { count: 'exact', head: true }).eq('status', 'Acik'),
+            supabase.from('tasks').select('*', { count: 'exact', head: true }).in('status', ['Bekliyor', 'Yapiliyor']),
+            supabase.from('visits').select('*', { count: 'exact', head: true }).eq('visit_date', today),
+            supabase.from('licenses').select('*', { count: 'exact', head: true })
         ]);
 
-        if (resCustomers.error) console.error('AI Chat: Customers Query Error:', resCustomers.error);
-        if (resSupports.error) console.error('AI Chat: Supports Query Error:', resSupports.error);
-        if (resTasks.error) console.error('AI Chat: Tasks Query Error:', resTasks.error);
-        if (resVisits.error) console.error('AI Chat: Visits Query Error:', resVisits.error);
-        if (resLicenses.error) console.error('AI Chat: Licenses Query Error:', resLicenses.error);
+        if (countCustomers.error) console.error('AI Chat: Customers Count Error:', countCustomers.error);
+        if (countSupports.error) console.error('AI Chat: Supports Count Error:', countSupports.error);
+        if (countTasks.error) console.error('AI Chat: Tasks Count Error:', countTasks.error);
+        if (countVisits.error) console.error('AI Chat: Visits Count Error:', countVisits.error);
+        if (countLicenses.error) console.error('AI Chat: Licenses Count Error:', countLicenses.error);
 
-        const customers = resCustomers.data || [];
-        const supports = resSupports.data || [];
-        const tasks = resTasks.data || [];
-        const visits = resVisits.data || [];
-        const licenses = resLicenses.data || [];
+        const customersCount = countCustomers.count || 0;
+        const openSupportsCount = countSupports.count || 0;
+        const activeTasksCount = countTasks.count || 0;
+        const visitsTodayCount = countVisits.count || 0;
+        const licensesCount = countLicenses.count || 0;
 
-        console.log(`AI Chat DB Counts - Customers: ${customers.length}, Supports: ${supports.length}, Tasks: ${tasks.length}, Visits: ${visits.length}, Licenses: ${licenses.length}`);
+        console.log(`AI Chat DB Counts - Customers: ${customersCount}, Supports: ${openSupportsCount}, Tasks: ${activeTasksCount}, Visits: ${visitsTodayCount}, Licenses: ${licensesCount}`);
 
         // --- Bağlam metni oluştur ---
-        const formatCustomer = (c) =>
-            `${c.company_name || `${c.first_name} ${c.last_name}`}`;
-
         const ctx = `
 BUGÜNÜN TARİHİ: ${today}
 
-=== MÜŞTERİLER (${customers.length} aktif) ===
-${customers.map(c =>
-            `- ${formatCustomer(c)} (ID: ${c.id}) | Tel: ${c.phone || '-'} | ${c.province || '-'}/${c.district || '-'}`
-        ).join('\n')}
+=== SİSTEM İSTATİSTİKLERİ ===
+- Aktif Müşteri Sayısı: ${customersCount}
+- Açık Destek Kaydı Sayısı: ${openSupportsCount}
+- Bekleyen/Yapılmakta Olan Görev Sayısı: ${activeTasksCount}
+- Bugün Planlanan Ziyaret Sayısı: ${visitsTodayCount}
+- Toplam Lisans Sayısı: ${licensesCount}
 
-=== TEKNİK DESTEK KAYITLARI (son 100) ===
-${supports.map(s =>
-            `- #${s.support_number} | ${s.customers ? formatCustomer(s.customers) : '-'} | Konu: ${s.subject} | Durum: ${s.status} | Tip: ${s.servis_tipi} | Başlangıç: ${s.start_time ? s.start_time.slice(0, 10) : '-'}`
-        ).join('\n')}
-
-=== GÖREVLER (son 100) ===
-${tasks.map(t =>
-            `- ${t.title} | Müşteri: ${t.customers ? formatCustomer(t.customers) : '-'} | Durum: ${t.status} | Öncelik: ${t.priority} | Bitiş: ${t.end_date || '-'} | Atanan: ${t.assigned?.full_name || '-'}`
-        ).join('\n')}
-
-=== ZİYARETLER (son 100) ===
-${visits.map(v =>
-            `- ${v.visit_date} ${v.visit_time || ''} | Müşteri: ${v.customers ? formatCustomer(v.customers) : '-'} | Durum: ${v.status} | Amaç: ${v.purpose || '-'} | Atanan: ${v.assigned?.full_name || '-'}`
-        ).join('\n')}
-
-=== LİSANSLAR (son 100) ===
-${licenses.map(l =>
-            `- ${l.program_name} v${l.version || '?'} | Müşteri: ${l.customers ? formatCustomer(l.customers) : '-'} | Bakım Sonu: ${l.maintenance_end || '-'}`
-        ).join('\n')}
-`.trim();
+=== ARAMA VE BİLGİ EDİNDİRME ARAÇLARI ===
+Veritabanında arama yapmak, detaylı kayıt listelemek veya belirli bir müşteriyi sorgulamak için tanımlı 'search_' ve 'get_' araçlarını (tools) KULLANMALISIN.
+Sana doğrudan tüm liste verilmez. Bir müşteriyi veya kaydı bulmak için sorguya göre arama aracı tetiklemelisin.
+Örnek: "tuse" firmasını bulmak için önce 'search_customers' aracını query="tuse" parametresiyle çağır.
+Bugünün ziyaretlerini listelemek için 'get_visits' aracını date="${today}" parametresiyle çağır.
+`;
 
         const systemPrompt = `Sen TeknikCRM adlı bir Akınsoft bayi CRM sisteminin AI asistanısın.
-GÖREVIN: Kullanıcının sorusunu YUKARIDAKİ VERİTABANI VERİLERİNİ kullanarak yanıtlamak ve gerektiğinde doğrudan yeni kayıtlar oluşturmak.
+GÖREVIN: Kullanıcının sorusunu YUKARIDAKİ VERİTABANI İSTATİSTİKLERİNİ ve ARAMA ARAÇLARINI kullanarak yanıtlamak ve gerektiğinde doğrudan yeni kayıtlar oluşturmak.
 
-KURALLAR:
+ÖNEMLİ KURALLAR:
 - Selamlaşma, teşekkür veya genel sohbet isteklerine dostça ve profesyonel bir şekilde yanıt ver.
 - Tarih işlemlerinde BUGÜNÜN TARİHİ'ni baz al: ${today}
 - Yanıtlarda tablolar yerine okunması kolay madde listeleri kullan.
-- Veritabanında eşleşen bir bilgi yoksa "Bu konuda veritabanında veri bulunamadı." de.
+- Veritabanında arama sonucu bulunamazsa "Bu konuda veritabanında veri bulunamadı." de.
 
-KAYIT OLUŞTURMA KURALLARI (ÇOK ÖNEMLİ):
-1. Eğer kullanıcı sistemde olmayan (MÜŞTERİLER listesinde bulunmayan) yeni bir müşteri için talepte bulunursa, doğrudan ve beklemeden 'create_customer' aracını (tool) çağır. Eksik bilgileri (telefon, il vb.) varsayılan olarak boş bırak veya kullanıcıdan daha sonra iste, ama ASLA simülasyon yapma ve süreci durdurma.
-2. Eğer müşteri zaten veritabanında varsa (isim veya şirket adıyla eşleşiyorsa), onun ID değerini tespit et ve doğrudan 'create_technical_support' aracını (tool) çağır.
-3. Eğer kullanıcı yeni bir görev/iş oluşturmak veya bir personeli görevlendirmek isterse, create_task aracını tetikle. Eğer görevlendirilecek müşteri sistemde kayıtlıysa, onun ID'sini bulup araca gönder.
+FONKSİYON/ARAÇ ÇAĞIRMA KURALLARI (KRİTİK):
+1. ARAÇLARI ASLA İÇ İÇE (NESTED) ÇAĞIRMA! Bir parametre (örneğin customer_id) değeri içerisine asla "<function=search_customers>..." gibi başka bir fonksiyon çağırma ifadesi veya XML etiketi yazma! Bu durum sistemin hata vermesine yol açar.
+2. Bir işlem yapmadan önce eğer müşteri adını biliyorsan ama müşteri ID (UUID) elinde yoksa, ilk adımda SADECE 'search_customers' aracını çağır. Başka hiçbir araç çağırma. Arama sonucunda dönen gerçek UUID'yi aldıktan sonra, sonraki adımda 'create_task' veya 'create_technical_support' aracını tetikleyebilirsin.
+3. Eğer arama sonucu hiçbir müşteri bulunamazsa ve kullanıcı yeni bir müşteri kaydı oluşturmak istiyorsa, 'create_customer' aracını çağır. Müşteri başarıyla oluşturulduktan sonra dönen gerçek ID ile bir sonraki adımda diğer kaydı oluştur.
 4. Kesinlikle "SİMÜLASYON: Yapay zeka create_customer fonksiyonunu tetiklemek istedi" gibi metinler üretme. Sen gerçek çalışan bir sistemsin, doğrudan araçları tetikle.
 
-VERİTABANI VERİLERİ:
+SİSTEM VE SORGULAMA VERİLERİ:
 ${ctx}`;
 
         // --- Araç Tanımları (Tools) ---
         const tools = [
+            {
+                type: 'function',
+                function: {
+                    name: 'search_customers',
+                    description: 'Müşterileri isim, şirket/firma adı veya telefon numarasına göre veritabanında arar.',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            query: {
+                                type: 'string',
+                                description: 'Arama terimi (isim, şirket adı veya telefon)'
+                            }
+                        },
+                        required: ['query']
+                    }
+                }
+            },
+            {
+                type: 'function',
+                function: {
+                    name: 'get_technical_supports',
+                    description: 'Teknik destek kayıtlarını filtreleyip getirir.',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            customer_id: {
+                                type: 'string',
+                                description: 'Müşteri ID\'si (UUID) - Belirli bir müşterinin kayıtları için'
+                            },
+                            status: {
+                                type: 'string',
+                                enum: ['Acik', 'Cozuldu', 'Iptal'],
+                                description: 'Destek kaydı durumu'
+                            },
+                            limit: {
+                                type: 'integer',
+                                description: 'Getirilecek maksimum kayıt sayısı (varsayılan: 20)'
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                type: 'function',
+                function: {
+                    name: 'get_tasks',
+                    description: 'Görevleri filtreleyip getirir.',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            customer_id: {
+                                type: 'string',
+                                description: 'Müşteri ID\'si (UUID) - Belirli bir müşterinin görevleri için'
+                            },
+                            status: {
+                                type: 'string',
+                                enum: ['Bekliyor', 'Yapiliyor', 'Tamamlandi', 'Iptal'],
+                                description: 'Görev durumu'
+                            },
+                            priority: {
+                                type: 'string',
+                                enum: ['Dusuk', 'Orta', 'Yuksek'],
+                                description: 'Görev önceliği'
+                            },
+                            limit: {
+                                type: 'integer',
+                                description: 'Getirilecek maksimum kayıt sayısı (varsayılan: 20)'
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                type: 'function',
+                function: {
+                    name: 'get_visits',
+                    description: 'Ziyaret planlarını filtreleyip getirir.',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            customer_id: {
+                                type: 'string',
+                                description: 'Müşteri ID\'si (UUID)'
+                            },
+                            date: {
+                                type: 'string',
+                                description: 'Belirli bir tarih (YYYY-MM-DD)'
+                            },
+                            status: {
+                                type: 'string',
+                                enum: ['Planlandi', 'Tamamlandi', 'Iptal'],
+                                description: 'Ziyaret durumu'
+                            },
+                            limit: {
+                                type: 'integer',
+                                description: 'Getirilecek maksimum kayıt sayısı (varsayılan: 20)'
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                type: 'function',
+                function: {
+                    name: 'get_licenses',
+                    description: 'Müşteri lisans bilgilerini filtreleyip getirir.',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            customer_id: {
+                                type: 'string',
+                                description: 'Müşteri ID\'si (UUID)'
+                            },
+                            limit: {
+                                type: 'integer',
+                                description: 'Getirilecek maksimum kayıt sayısı (varsayılan: 20)'
+                            }
+                        }
+                    }
+                }
+            },
             {
                 type: 'function',
                 function: {
@@ -162,7 +252,7 @@ ${ctx}`;
                         properties: {
                             customer_id: {
                                 type: 'string',
-                                description: 'Müşteri ID\'si (UUID) (Zorunlu)'
+                                description: 'Müşteri ID\'si (UUID) (Zorunlu). Eğer elinizde müşterinin UUID formatındaki ID\'si yoksa bu fonksiyonu çağırmayın! Önce \'search_customers\' fonksiyonunu çağırarak ID\'yi bulun.'
                             },
                             subject: {
                                 type: 'string',
@@ -172,7 +262,6 @@ ${ctx}`;
                                 type: 'string',
                                 description: 'Destek kaydı hakkında detaylı açıklama'
                             },
-
                             servis_tipi: {
                                 type: 'string',
                                 enum: ['Ucretli', 'Ucretsiz'],
@@ -205,7 +294,7 @@ ${ctx}`;
                             },
                             customer_id: {
                                 type: 'string',
-                                description: 'Müşteri ID\'si (UUID) - İlişkili Müşteri'
+                                description: 'Müşteri ID\'si (UUID). Eğer elinizde müşterinin UUID formatındaki ID\'si yoksa, bu parametreyi boş bırakın veya önce \'search_customers\' fonksiyonunu çağırarak ID\'yi bulun. Asla geçersiz veya uydurma bir ID girmeyin.'
                             },
                             assigned_to: {
                                 type: 'string',
@@ -236,122 +325,20 @@ ${ctx}`;
             }
         ];
 
-        // --- Groq API çağrısı ---
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: message }
-                ],
-                temperature: 0.3,
-                tools,
-                tool_choice: 'auto'
-            })
-        });
+        let messages = [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message }
+        ];
 
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            console.error('Groq API Hata Detayı:', errData);
-            throw new Error(errData.error?.message || `HTTP Hata: ${response.status}`);
-        }
+        let loopCount = 0;
+        const maxLoops = 5;
+        let finalResponse = null;
 
-        const data = await response.json();
-        const messageResponse = data.choices[0]?.message;
+        while (loopCount < maxLoops) {
+            console.log(`[AI-CHAT LOOP] Tur: ${loopCount + 1}`);
 
-        // Yapay zeka araç çağırmak istedi mi?
-        if (messageResponse?.tool_calls && messageResponse.tool_calls.length > 0) {
-            const firstCall = messageResponse.tool_calls[0];
-            const funcName = firstCall.function.name;
-            const args = JSON.parse(firstCall.function.arguments || '{}');
-            let toolResultContent = '';
-
-            console.log(`[AI-CHAT TOOL CALL] Fonksiyon: ${funcName}, Argümanlar:`, args);
-
-            if (funcName === 'create_customer') {
-                const { company_name, phone, province, district } = args;
-                const nameParts = (company_name || "Müşteri").split(' ');
-                const firstName = nameParts[0];
-                const lastName = nameParts.slice(1).join(' ') || 'Soyadı';
-
-                const { data, error } = await supabase
-                    .from('customers')
-                    .insert([{
-                        first_name: firstName,
-                        last_name: lastName,
-                        company_name: company_name || null,
-                        phone: phone || 'Girilmedi',
-                        province: province || null,
-                        district: district || null
-                    }])
-                    .select();
-
-                if (error) {
-                    console.error('Müşteri oluşturma hatası:', error);
-                    toolResultContent = `Hata oluştu: ${error.message}`;
-                } else {
-                    toolResultContent = `Müşteri başarıyla oluşturuldu. Müşteri ID: ${data[0].id}`;
-                }
-            } else if (funcName === 'create_technical_support') {
-                const { customer_id, subject, description, servis_tipi, caller_name } = args;
-
-                // customer_id'nin geçerli bir UUID formatında olup olmadığını basitçe doğrula
-                if (!customer_id || customer_id.length < 10) {
-                    toolResultContent = `Hata: Geçersiz müşteri ID'si (${customer_id}). Destek kaydı oluşturmak için önce geçerli bir müşterinin ID'si verilmelidir.`;
-                } else {
-                    const { data, error } = await supabase
-                        .from('technical_supports')
-                        .insert([{
-                            customer_id: customer_id,
-                            caller_name: caller_name || 'Girilmedi',
-                            subject: subject || 'Genel Destek Talebi',
-                            description: description || null,
-                            servis_tipi: servis_tipi || 'Ucretsiz', // Şemadaki varsayılan değer
-                            status: 'Acik'
-                        }])
-                        .select();
-
-                    if (error) {
-                        console.error('Destek kaydı oluşturma hatası:', error);
-                        toolResultContent = `Hata oluştu: ${error.message}`;
-                    } else {
-                        toolResultContent = `Teknik destek talebi başarıyla oluşturuldu. Destek Numarası: ${data[0].support_number}`;
-                    }
-                }
-            } else if (funcName === 'create_task') {
-                const { title, description, customer_id, assigned_to, priority, status, start_date, end_date } = args;
-                
-                const { data, error } = await supabase
-                  .from('tasks')
-                  .insert([{
-                    title: title,
-                    description: description || null,
-                    customer_id: customer_id || null,
-                    assigned_to: assigned_to || null,
-                    priority: priority || 'Orta',
-                    status: status || 'Bekliyor',
-                    start_date: start_date || null,
-                    end_date: end_date || null
-                  }])
-                  .select();
-
-                if (error) {
-                    console.error('Görev oluşturma hatası:', error);
-                    toolResultContent = `Hata oluştu: ${error.message}`;
-                } else {
-                    toolResultContent = `Görev başarıyla oluşturuldu. Görev Başlığı: ${data[0].title}`;
-                }
-            } else {
-                toolResultContent = "Bilinmeyen araç çağrısı.";
-            }
-
-            // Yanıtı Groq'a geri besleyerek (tool mesajı ile) 2. aşama (final) yanıtı alalım
-            const secondResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            // --- Groq API çağrısı ---
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
@@ -359,34 +346,294 @@ ${ctx}`;
                 },
                 body: JSON.stringify({
                     model: 'llama-3.3-70b-versatile',
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: message },
-                        messageResponse, // AI'nin asıl yanıtı (tool_calls içerir)
-                        {
-                            role: 'tool',
-                            tool_call_id: firstCall.id,
-                            name: funcName,
-                            content: toolResultContent
-                        }
-                    ],
-                    temperature: 0.3
+                    messages,
+                    temperature: 0.3,
+                    tools,
+                    tool_choice: 'auto'
                 })
             });
 
-            if (!secondResponse.ok) {
-                const errData = await secondResponse.json().catch(() => ({}));
-                console.error('Groq API 2. Aşama Hata Detayı:', errData);
-                throw new Error(errData.error?.message || `HTTP Hata (2. aşama): ${secondResponse.status}`);
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                console.error('Groq API Hata Detayı:', errData);
+                throw new Error(errData.error?.message || `HTTP Hata: ${response.status}`);
             }
 
-            const secondData = await secondResponse.json();
-            const finalAnswer = secondData.choices[0]?.message?.content || 'İşlem tamamlandı, ancak yanıt alınamadı.';
-            return res.status(200).json({ answer: finalAnswer });
+            const data = await response.json();
+            const messageResponse = data.choices[0]?.message;
+
+            if (!messageResponse) {
+                throw new Error('Groq boş yanıt döndü.');
+            }
+
+            // AI cevabını geçmişe ekleyelim
+            messages.push(messageResponse);
+
+            // Yapay zeka araç çağırmak istedi mi?
+            if (messageResponse.tool_calls && messageResponse.tool_calls.length > 0) {
+                console.log(`[AI-CHAT] AI ${messageResponse.tool_calls.length} adet araç çağrısı yapmak istiyor.`);
+
+                // Aynı turda hem arama/müşteri ekleme hem de bağlı kayıt oluşturma paralel yapılmasını engelle.
+                // Bu sayede mükerrer kayıt eklenmesi ve müşterisiz kayıt oluşturulması önlenir.
+                const hasSearch = messageResponse.tool_calls.some(tc => tc.function.name === 'search_customers');
+                const hasCreateCustomer = messageResponse.tool_calls.some(tc => tc.function.name === 'create_customer');
+
+                for (const toolCall of messageResponse.tool_calls) {
+                    const funcName = toolCall.function.name;
+                    const args = JSON.parse(toolCall.function.arguments || '{}');
+                    let toolResultContent = '';
+
+                    console.log(`[AI-CHAT TOOL CALL] Fonksiyon: ${funcName}, Argümanlar:`, args);
+
+                    try {
+                        if ((hasSearch || hasCreateCustomer) && (funcName === 'create_task' || funcName === 'create_technical_support')) {
+                            toolResultContent = `İptal edildi: Aynı turda hem arama/müşteri ekleme hem de bağlı kayıt oluşturma paralel yapılamaz. Lütfen önce müşteri ID'sini (UUID) elde edin, bir sonraki turda bu ID ile kaydı oluşturun.`;
+                            console.log(`[AI-CHAT TOOL CALL] Deferring ${funcName} because customer is not yet resolved.`);
+                        }
+                        else if (funcName === 'search_customers') {
+                            const { query } = args;
+                            let queryBuilder = supabase.from('customers')
+                                .select('id, first_name, last_name, company_name, phone, province, district, is_active, notes')
+                                .eq('is_active', true);
+
+                            if (query) {
+                                const words = query.split(/\s+/).map(w => w.trim()).filter(w => w.length >= 3);
+                                if (words.length > 0) {
+                                    let orParts = [];
+                                    for (const word of words) {
+                                        const cleanWord = word
+                                            .replace(/ı/g, 'i')
+                                            .replace(/ş/g, 's')
+                                            .replace(/ğ/g, 'g')
+                                            .replace(/ç/g, 'c')
+                                            .replace(/ö/g, 'o')
+                                            .replace(/ü/g, 'u')
+                                            .replace(/I/g, 'i')
+                                            .replace(/İ/g, 'i')
+                                            .replace(/Ş/g, 's')
+                                            .replace(/Ğ/g, 'g')
+                                            .replace(/Ç/g, 'c')
+                                            .replace(/Ö/g, 'o')
+                                            .replace(/Ü/g, 'u');
+                                        
+                                        orParts.push(`company_name.ilike.%${word}%`);
+                                        orParts.push(`first_name.ilike.%${word}%`);
+                                        orParts.push(`last_name.ilike.%${word}%`);
+                                        
+                                        if (cleanWord !== word) {
+                                            orParts.push(`company_name.ilike.%${cleanWord}%`);
+                                            orParts.push(`first_name.ilike.%${cleanWord}%`);
+                                            orParts.push(`last_name.ilike.%${cleanWord}%`);
+                                        }
+                                    }
+                                    queryBuilder = queryBuilder.or(orParts.join(','));
+                                } else {
+                                    queryBuilder = queryBuilder.or(`company_name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%,phone.ilike.%${query}%`);
+                                }
+                            }
+
+                            const { data: custData, error: custErr } = await queryBuilder.limit(20);
+
+                            if (custErr) {
+                                toolResultContent = `Müşteri arama hatası: ${custErr.message}`;
+                            } else {
+                                toolResultContent = JSON.stringify(custData || []);
+                            }
+                        }
+                        else if (funcName === 'get_technical_supports') {
+                            const { customer_id, status, limit } = args;
+                            let queryBuilder = supabase.from('technical_supports')
+                                .select('id, support_number, subject, status, caller_name, servis_tipi, start_time, end_time, description, resolution, customers(company_name, first_name, last_name)');
+
+                            if (customer_id) {
+                                queryBuilder = queryBuilder.eq('customer_id', customer_id);
+                            }
+                            if (status) {
+                                queryBuilder = queryBuilder.eq('status', status);
+                            }
+
+                            const { data: suppData, error: suppErr } = await queryBuilder
+                                .order('created_at', { ascending: false })
+                                .limit(limit || 20);
+
+                            if (suppErr) {
+                                toolResultContent = `Destek kaydı getirme hatası: ${suppErr.message}`;
+                            } else {
+                                toolResultContent = JSON.stringify(suppData || []);
+                            }
+                        }
+                        else if (funcName === 'get_tasks') {
+                            const { customer_id, status, priority, limit } = args;
+                            let queryBuilder = supabase.from('tasks')
+                                .select('id, title, description, status, priority, start_date, end_date, customers(company_name, first_name, last_name), assigned:profiles!tasks_assigned_to_fkey(full_name)');
+
+                            if (customer_id) {
+                                queryBuilder = queryBuilder.eq('customer_id', customer_id);
+                            }
+                            if (status) {
+                                queryBuilder = queryBuilder.eq('status', status);
+                            }
+                            if (priority) {
+                                queryBuilder = queryBuilder.eq('priority', priority);
+                            }
+
+                            const { data: taskData, error: taskErr } = await queryBuilder
+                                .order('end_date', { ascending: true })
+                                .limit(limit || 20);
+
+                            if (taskErr) {
+                                toolResultContent = `Görev getirme hatası: ${taskErr.message}`;
+                            } else {
+                                toolResultContent = JSON.stringify(taskData || []);
+                            }
+                        }
+                        else if (funcName === 'get_visits') {
+                            const { customer_id, date, status, limit } = args;
+                            let queryBuilder = supabase.from('visits')
+                                .select('id, visit_date, visit_time, status, purpose, notes, work_done, result, customers(company_name, first_name, last_name), assigned:profiles!visits_assigned_to_fkey(full_name)');
+
+                            if (customer_id) {
+                                queryBuilder = queryBuilder.eq('customer_id', customer_id);
+                            }
+                            if (date) {
+                                queryBuilder = queryBuilder.eq('visit_date', date);
+                            }
+                            if (status) {
+                                queryBuilder = queryBuilder.eq('status', status);
+                            }
+
+                            const { data: visitData, error: visitErr } = await queryBuilder
+                                .order('visit_date', { ascending: false })
+                                .limit(limit || 20);
+
+                            if (visitErr) {
+                                toolResultContent = `Ziyaret getirme hatası: ${visitErr.message}`;
+                            } else {
+                                toolResultContent = JSON.stringify(visitData || []);
+                            }
+                        }
+                        else if (funcName === 'get_licenses') {
+                            const { customer_id, limit } = args;
+                            let queryBuilder = supabase.from('licenses')
+                                .select('id, license_number, program_name, version, maintenance_end, customers(company_name, first_name, last_name)');
+
+                            if (customer_id) {
+                                queryBuilder = queryBuilder.eq('customer_id', customer_id);
+                            }
+
+                            const { data: licData, error: licErr } = await queryBuilder
+                                .order('maintenance_end', { ascending: true })
+                                .limit(limit || 20);
+
+                            if (licErr) {
+                                toolResultContent = `Lisans getirme hatası: ${licErr.message}`;
+                            } else {
+                                toolResultContent = JSON.stringify(licData || []);
+                            }
+                        }
+                        else if (funcName === 'create_customer') {
+                            const { company_name, phone, province, district } = args;
+                            const nameParts = (company_name || "Müşteri").split(' ');
+                            const firstName = nameParts[0];
+                            const lastName = nameParts.slice(1).join(' ') || 'Soyadı';
+
+                            const { data: newCust, error: newCustErr } = await supabase
+                                .from('customers')
+                                .insert([{
+                                    first_name: firstName,
+                                    last_name: lastName,
+                                    company_name: company_name || null,
+                                    phone: phone || 'Girilmedi',
+                                    province: province || null,
+                                    district: district || null
+                                }])
+                                .select();
+
+                            if (newCustErr) {
+                                toolResultContent = `Müşteri oluşturma hatası: ${newCustErr.message}`;
+                            } else {
+                                toolResultContent = `Müşteri başarıyla oluşturuldu. Müşteri ID: ${newCust[0].id}`;
+                            }
+                        }
+                        else if (funcName === 'create_technical_support') {
+                            const { customer_id, subject, description, servis_tipi, caller_name } = args;
+
+                            if (!customer_id || customer_id.length < 10) {
+                                toolResultContent = `Hata: Geçersiz müşteri ID'si (${customer_id}). Destek kaydı oluşturmak için önce geçerli bir müşterinin ID'si verilmelidir.`;
+                            } else {
+                                const { data: newSupp, error: newSuppErr } = await supabase
+                                    .from('technical_supports')
+                                    .insert([{
+                                        customer_id: customer_id,
+                                        caller_name: caller_name || 'Girilmedi',
+                                        subject: subject || 'Genel Destek Talebi',
+                                        description: description || null,
+                                        servis_tipi: servis_tipi || 'Ucretsiz',
+                                        status: 'Acik'
+                                    }])
+                                    .select();
+
+                                if (newSuppErr) {
+                                    toolResultContent = `Destek kaydı oluşturma hatası: ${newSuppErr.message}`;
+                                } else {
+                                    toolResultContent = `Teknik destek talebi başarıyla oluşturuldu. Destek Numarası: ${newSupp[0].support_number}`;
+                                }
+                            }
+                        }
+                        else if (funcName === 'create_task') {
+                            const { title, description, customer_id, assigned_to, priority, status, start_date, end_date } = args;
+
+                            const { data: newTask, error: newTaskErr } = await supabase
+                                .from('tasks')
+                                .insert([{
+                                    title: title,
+                                    description: description || null,
+                                    customer_id: customer_id || null,
+                                    assigned_to: assigned_to || null,
+                                    priority: priority || 'Orta',
+                                    status: status || 'Bekliyor',
+                                    start_date: start_date || null,
+                                    end_date: end_date || null
+                                }])
+                                .select();
+
+                            if (newTaskErr) {
+                                toolResultContent = `Görev oluşturma hatası: ${newTaskErr.message}`;
+                            } else {
+                                toolResultContent = `Görev başarıyla oluşturuldu. Görev Başlığı: ${newTask[0].title}`;
+                            }
+                        }
+                        else {
+                            toolResultContent = "Bilinmeyen araç çağrısı.";
+                        }
+                    } catch (e) {
+                        console.error(`Araç yürütülürken hata: ${funcName}`, e);
+                        toolResultContent = `Araç çalıştırılırken sistem hatası: ${e.message}`;
+                    }
+
+                    // Sonucu mesaj geçmişine ekle
+                    messages.push({
+                        role: 'tool',
+                        tool_call_id: toolCall.id,
+                        name: funcName,
+                        content: toolResultContent
+                    });
+                }
+
+                loopCount++;
+            } else {
+                // Araç çağrılmadıysa döngüden çık, bu final cevaptır.
+                finalResponse = messageResponse.content;
+                break;
+            }
         }
 
-        const answer = messageResponse?.content || 'Yanıt alınamadı.';
-        return res.status(200).json({ answer });
+        if (!finalResponse) {
+            const lastMsg = messages[messages.length - 1];
+            finalResponse = lastMsg?.content || 'İşlem tamamlandı, ancak yanıt alınamadı.';
+        }
+
+        return res.status(200).json({ answer: finalResponse });
 
     } catch (error) {
         console.error('AI Chat hatası:', error);
