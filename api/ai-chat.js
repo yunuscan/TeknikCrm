@@ -115,7 +115,8 @@ KURALLAR:
 KAYIT OLUŞTURMA KURALLARI (ÇOK ÖNEMLİ):
 1. Eğer kullanıcı sistemde olmayan (MÜŞTERİLER listesinde bulunmayan) yeni bir müşteri için talepte bulunursa, doğrudan ve beklemeden 'create_customer' aracını (tool) çağır. Eksik bilgileri (telefon, il vb.) varsayılan olarak boş bırak veya kullanıcıdan daha sonra iste, ama ASLA simülasyon yapma ve süreci durdurma.
 2. Eğer müşteri zaten veritabanında varsa (isim veya şirket adıyla eşleşiyorsa), onun ID değerini tespit et ve doğrudan 'create_technical_support' aracını (tool) çağır.
-3. Kesinlikle "SİMÜLASYON: Yapay zeka create_customer fonksiyonunu tetiklemek istedi" gibi metinler üretme. Sen gerçek çalışan bir sistemsin, doğrudan araçları tetikle.
+3. Eğer kullanıcı yeni bir görev/iş oluşturmak veya bir personeli görevlendirmek isterse, create_task aracını tetikle. Eğer görevlendirilecek müşteri sistemde kayıtlıysa, onun ID'sini bulup araca gönder.
+4. Kesinlikle "SİMÜLASYON: Yapay zeka create_customer fonksiyonunu tetiklemek istedi" gibi metinler üretme. Sen gerçek çalışan bir sistemsin, doğrudan araçları tetikle.
 
 VERİTABANI VERİLERİ:
 ${ctx}`;
@@ -183,6 +184,53 @@ ${ctx}`;
                             }
                         },
                         required: ['customer_id', 'subject']
+                    }
+                }
+            },
+            {
+                type: 'function',
+                function: {
+                    name: 'create_task',
+                    description: 'Sisteme yeni bir görev ekler veya bir personeli görevlendirir.',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            title: {
+                                type: 'string',
+                                description: 'Görev Başlığı (Zorunlu)'
+                            },
+                            description: {
+                                type: 'string',
+                                description: 'Görev Açıklaması'
+                            },
+                            customer_id: {
+                                type: 'string',
+                                description: 'Müşteri ID\'si (UUID) - İlişkili Müşteri'
+                            },
+                            assigned_to: {
+                                type: 'string',
+                                description: 'Atanan Personel ID\'si (UUID)'
+                            },
+                            priority: {
+                                type: 'string',
+                                enum: ['Dusuk', 'Orta', 'Yuksek'],
+                                description: 'Görev Önceliği'
+                            },
+                            status: {
+                                type: 'string',
+                                enum: ['Bekliyor', 'Yapiliyor', 'Tamamlandi', 'Iptal'],
+                                description: 'Görev Durumu'
+                            },
+                            start_date: {
+                                type: 'string',
+                                description: 'Başlangıç Tarihi (YYYY-MM-DD)'
+                            },
+                            end_date: {
+                                type: 'string',
+                                description: 'Bitiş Tarihi (YYYY-MM-DD)'
+                            }
+                        },
+                        required: ['title']
                     }
                 }
             }
@@ -274,6 +322,29 @@ ${ctx}`;
                     } else {
                         toolResultContent = `Teknik destek talebi başarıyla oluşturuldu. Destek Numarası: ${data[0].support_number}`;
                     }
+                }
+            } else if (funcName === 'create_task') {
+                const { title, description, customer_id, assigned_to, priority, status, start_date, end_date } = args;
+                
+                const { data, error } = await supabase
+                  .from('tasks')
+                  .insert([{
+                    title: title,
+                    description: description || null,
+                    customer_id: customer_id || null,
+                    assigned_to: assigned_to || null,
+                    priority: priority || 'Orta',
+                    status: status || 'Bekliyor',
+                    start_date: start_date || null,
+                    end_date: end_date || null
+                  }])
+                  .select();
+
+                if (error) {
+                    console.error('Görev oluşturma hatası:', error);
+                    toolResultContent = `Hata oluştu: ${error.message}`;
+                } else {
+                    toolResultContent = `Görev başarıyla oluşturuldu. Görev Başlığı: ${data[0].title}`;
                 }
             } else {
                 toolResultContent = "Bilinmeyen araç çağrısı.";

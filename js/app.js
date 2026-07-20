@@ -11,6 +11,7 @@ import { renderDashboard }        from './modules/dashboard.js';
 import { renderCustomers }        from './modules/customers.js';
 import { renderTechnicalSupport } from './modules/technical-support.js';
 import { renderTasks }            from './modules/tasks.js';
+import { renderIsAkisleri }       from './modules/is-akisleri.js';
 import { renderCalendar }         from './modules/calendar.js';
 import { renderVisits }           from './modules/visits.js';
 import { renderReports }          from './modules/reports.js';
@@ -37,6 +38,7 @@ const ROUTES = {
     'technical-support': { handler: renderTechnicalSupport, roles: [] },
     calendar:           { handler: renderCalendar,          roles: [] },
     tasks:              { handler: renderTasks,             roles: [] },
+    'is-akisleri':      { handler: renderIsAkisleri,        roles: [] },
     visits:             { handler: renderVisits,            roles: [] },
     reports:            { handler: renderReports,           roles: ['Yonetici'] },
     users:              { handler: renderUsers,             roles: ['Yonetici'] },
