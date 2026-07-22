@@ -257,7 +257,14 @@ export async function showSupportDetail(s, profile) {
                         ${staffOptions}
                     </select>
                 </div>
-                <div class="col-span-2">
+                <div>
+                    <span class="text-gray-400 text-xs">Destek Türü</span>
+                    <select id="detail-destek-turu" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Online" ${s.destek_turu !== 'Sahada' ? 'selected' : ''}>Online</option>
+                        <option value="Sahada" ${s.destek_turu === 'Sahada' ? 'selected' : ''}>Sahada</option>
+                    </select>
+                </div>
+                <div>
                     <span class="text-gray-400 text-xs">Servis Tipi</span>
                     <select id="detail-servis-tipi" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="Ucretsiz" ${s.servis_tipi === 'Ucretsiz' ? 'selected' : ''}>Ücretsiz</option>
@@ -400,6 +407,7 @@ export async function showSupportDetail(s, profile) {
                 const caller_name = document.getElementById('detail-caller-name').value.trim() || null;
                 const caller_phone = document.getElementById('detail-caller-phone').value.trim() || null;
                 const assigned_to = document.getElementById('detail-assigned-to').value || null;
+                const destek_turu = document.getElementById('detail-destek-turu').value || 'Online';
                 const servisTipi = document.getElementById('detail-servis-tipi').value;
                 const isUcretli = servisTipi === 'Ucretli';
 
@@ -408,6 +416,7 @@ export async function showSupportDetail(s, profile) {
                     caller_name,
                     caller_phone,
                     assigned_to,
+                    destek_turu,
                     servis_tipi: servisTipi,
                     fiyat: isUcretli ? (parseFloat(document.getElementById('detail-fiyat').value) || null) : null,
                     odeme_durumu: isUcretli ? (document.getElementById('detail-odeme-durumu').value || 'Odenmedi') : null,
@@ -455,7 +464,8 @@ export async function showSupportDetail(s, profile) {
                 <div><span class="text-gray-400 text-xs">Durum</span><div class="mt-0.5">${statusBadge(s.status)}</div></div>
                 <div><span class="text-gray-400 text-xs">Arayan</span><p class="text-gray-700">${escHtml(s.caller_name)} ${s.caller_phone ? `<span class="text-gray-400">(${escHtml(s.caller_phone)})</span>` : ''}</p></div>
                 <div><span class="text-gray-400 text-xs">Başlangıç</span><p class="text-gray-700">${formatDateTime(s.start_time)}</p></div>
-                <div class="col-span-2">
+                <div><span class="text-gray-400 text-xs">Destek Türü</span><p class="text-gray-700">${s.destek_turu === 'Sahada' ? 'Sahada' : 'Online'}</p></div>
+                <div>
                     <span class="text-gray-400 text-xs">Servis Bilgisi</span>
                     <div class="mt-1">${serviceBadge}</div>
                 </div>

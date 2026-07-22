@@ -155,6 +155,8 @@ CREATE TABLE public.technical_supports (
     resolution     TEXT,
     status         TEXT        NOT NULL DEFAULT 'Acik'
                                CHECK (status IN ('Acik', 'Devam Ediyor', 'Cozuldu', 'Kapali')),
+    destek_turu    TEXT        NOT NULL DEFAULT 'Online'
+                               CHECK (destek_turu IN ('Online', 'Sahada')),
     notes          TEXT,
     servis_tipi    TEXT        NOT NULL DEFAULT 'Ucretsiz'
                                CHECK (servis_tipi IN ('Ucretli', 'Ucretsiz')),
