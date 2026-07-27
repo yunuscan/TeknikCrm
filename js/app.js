@@ -16,6 +16,8 @@ import { renderVisits }           from './modules/visits.js';
 import { renderReports }          from './modules/reports.js';
 import { renderUsers }            from './modules/users.js';
 import { renderSettings }         from './modules/settings.js';
+import { renderTools, downloadToolFile, handleIncrementCount } from './modules/tools.js';
+import { escHtml } from './utils.js';
 
 // ---------------------------------------------------
 // Uygulama durumu
@@ -23,6 +25,7 @@ import { renderSettings }         from './modules/settings.js';
 
 let currentProfile = null;
 let currentView    = null;
+let quickToolsCache = [];
 
 // ---------------------------------------------------
 // Rota tablosu
@@ -38,6 +41,7 @@ const ROUTES = {
     calendar:           { handler: renderCalendar,          roles: [] },
     tasks:              { handler: renderTasks,             roles: [] },
     visits:             { handler: renderVisits,            roles: [] },
+    tools:              { handler: renderTools,             roles: [] },
     reports:            { handler: renderReports,           roles: ['Yonetici'] },
     users:              { handler: renderUsers,             roles: ['Yonetici'] },
     settings:           { handler: renderSettings,          roles: [] },
@@ -187,8 +191,83 @@ function initUserMenu() {
 }
 
 // ---------------------------------------------------
-// Araclar menu dropdown toggle & copy logic
+// Araclar menu dropdown toggle & quick download logic
 // ---------------------------------------------------
+
+async function loadQuickNavbarTools() {
+    const listContainer = document.getElementById('navbar-quick-tools-list');
+    if (!listContainer) return;
+
+    try {
+        const { data, error } = await supabase
+            .from('tools')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(8);
+
+        if (error) throw error;
+        quickToolsCache = data || [];
+
+        if (quickToolsCache.length === 0) {
+            listContainer.innerHTML = `
+                <div class="p-3 text-center text-xs text-slate-400 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                    Henüz dosya veya bağlantı eklenmedi.
+                </div>
+            `;
+            return;
+        }
+
+        listContainer.innerHTML = quickToolsCache.map(item => {
+            const isLink = item.tool_type === 'link';
+            const isZip = !isLink && (item.file_name?.endsWith('.zip') || item.file_name?.endsWith('.rar'));
+            
+            return `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 hover:border-indigo-300 transition-all gap-2">
+                    <div class="flex items-center gap-2.5 truncate">
+                        <div class="p-1.5 rounded-lg ${isLink ? 'bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400' : (isZip ? 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400')} shrink-0">
+                            ${isLink ? `
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                </svg>
+                            ` : `
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                            `}
+                        </div>
+                        <div class="truncate">
+                            <p class="text-xs font-bold text-slate-800 dark:text-white truncate" title="${escHtml(item.name)}">${escHtml(item.name)}</p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${escHtml(item.category || 'Genel')}</p>
+                        </div>
+                    </div>
+
+                    ${isLink ? `
+                        <a
+                            href="${escHtml(item.external_url)}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-quick-id="${item.id}"
+                            class="btn-quick-open-link px-2.5 py-1 text-[11px] font-bold text-sky-700 bg-sky-100 hover:bg-sky-200 dark:bg-sky-950 dark:text-sky-300 rounded-lg transition-colors shrink-0"
+                        >
+                            Aç
+                        </a>
+                    ` : `
+                        <button
+                            type="button"
+                            data-quick-id="${item.id}"
+                            class="btn-quick-download px-2.5 py-1 text-[11px] font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 rounded-lg transition-colors shrink-0"
+                        >
+                            İndir
+                        </button>
+                    `}
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error('[Quick Tools Fetch Error]', err);
+    }
+}
 
 function initToolsMenu() {
     const btn = document.getElementById('btn-tools-menu');
@@ -201,7 +280,35 @@ function initToolsMenu() {
 
     btn.addEventListener('click', e => {
         e.stopPropagation();
+        const isOpening = dropdown.classList.contains('hidden');
         dropdown.classList.toggle('hidden');
+        if (isOpening) {
+            loadQuickNavbarTools();
+        }
+    });
+
+    // Araçlar güncellendiğinde navbar listesini de otomatik tazele
+    window.addEventListener('tools-updated', loadQuickNavbarTools);
+
+    // Dropdown içi İndir / Aç buton tıklamaları
+    dropdown.addEventListener('click', async e => {
+        const dlBtn = e.target.closest('.btn-quick-download');
+        const linkBtn = e.target.closest('.btn-quick-open-link');
+
+        if (dlBtn) {
+            e.stopPropagation();
+            const id = dlBtn.dataset.quickId;
+            const item = quickToolsCache.find(t => t.id === id);
+            if (item) {
+                await downloadToolFile(item);
+            }
+        } else if (linkBtn) {
+            e.stopPropagation();
+            const id = linkBtn.dataset.quickId;
+            if (id) {
+                await handleIncrementCount(id);
+            }
+        }
     });
 
     // Close when clicking outside

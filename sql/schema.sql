@@ -458,3 +458,55 @@ CREATE POLICY pol_reminders_update
 CREATE POLICY pol_reminders_delete
     ON public.reminders FOR DELETE
     USING (created_by = auth.uid() OR public.fn_get_role() = 'Yonetici');
+
+-- ============================================================
+-- TABLO: tools
+-- Sistem/yazıcı/ayar araçları ve indirilebilir program dosyaları
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.tools (
+    id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    name           TEXT        NOT NULL,
+    description    TEXT,
+    category       TEXT        NOT NULL DEFAULT 'Genel',
+    tool_type      TEXT        NOT NULL DEFAULT 'file' CHECK (tool_type IN ('file', 'link')),
+    file_name      TEXT,
+    file_path      TEXT,
+    external_url   TEXT,
+    file_size      BIGINT      NOT NULL DEFAULT 0,
+    mime_type      TEXT,
+    download_count INT         NOT NULL DEFAULT 0,
+    created_by     UUID        REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE OR REPLACE TRIGGER trg_tools_updated_at
+    BEFORE UPDATE ON public.tools
+    FOR EACH ROW EXECUTE FUNCTION public.fn_set_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_tools_category   ON public.tools (category);
+CREATE INDEX IF NOT EXISTS idx_tools_created_at ON public.tools (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tools_created_by ON public.tools (created_by);
+
+ALTER TABLE public.tools ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY pol_tools_select
+    ON public.tools FOR SELECT
+    USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY pol_tools_insert
+    ON public.tools FOR INSERT
+    WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY pol_tools_update
+    ON public.tools FOR UPDATE
+    USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY pol_tools_delete
+    ON public.tools FOR DELETE
+    USING (
+        created_by = auth.uid() 
+        OR public.fn_get_role() IN ('Yonetici', 'Yönetici', 'Teknik Servis')
+    );
+
