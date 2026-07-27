@@ -91,12 +91,13 @@ function buildHTML(supports, customers, staff, canWrite, canDelete, profile) {
                                 <th class="px-2 py-3 font-medium">Müşteri</th>
                                 <th class="px-2 py-3 font-medium">Konu</th>
                                 <th class="w-28 px-2 py-3 font-medium">Arayan</th>
+                                <th class="w-24 px-2 py-3 font-medium">Tür</th>
                                 <th class="w-28 px-2 py-3 font-medium">Atanan</th>
                                 <th class="w-36 px-2 py-3 font-medium">Başlangıç</th>
                                 <th class="w-24 px-2 py-3 font-medium">Fiyat</th>
                                 <th class="w-24 px-2 py-3 font-medium">Ödeme</th>
                                 <th class="w-28 px-2 py-3 font-medium">Durum</th>
-                                ${canWrite ? `<th class="w-36 px-2 py-3 font-medium text-right">İşlemler</th>` : ''}
+                                ${canWrite ? `<th class="w-32 px-2 py-3 font-medium text-right">İşlemler</th>` : ''}
                                 ${canDelete ? `<th class="w-12 px-2 py-3"></th>` : ''}
                             </tr>
                         </thead>
@@ -125,15 +126,29 @@ function buildRow(s, canWrite, canDelete, profile) {
     const assignee = s.assigned?.full_name ? escHtml(s.assigned.full_name) : '-';
 
     const actions = canWrite ? `
-        <div class="flex items-center justify-end gap-2 whitespace-nowrap">
-            <button data-action="detail" data-id="${s.id}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 whitespace-nowrap">Detay</button>
-            <button data-action="edit" data-id="${s.id}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-indigo-200 text-indigo-600 hover:bg-indigo-50 whitespace-nowrap">Duzenle</button>
+        <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
+            <button data-action="detail" data-id="${s.id}" data-tooltip="Detay"
+                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 inline-flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+            </button>
+            <button data-action="edit" data-id="${s.id}" data-tooltip="Düzenle"
+                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-indigo-500 hover:text-indigo-700 p-1.5 rounded-lg hover:bg-indigo-50 inline-flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+            </button>
         </div>` : `
-        <div class="flex items-center justify-end whitespace-nowrap">
-            <button data-action="detail" data-id="${s.id}"
-                class="text-xs px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 whitespace-nowrap">Detay</button>
+        <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
+            <button data-action="detail" data-id="${s.id}" data-tooltip="Detay"
+                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 inline-flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+            </button>
         </div>`;
 
     // Fiyat sütunu
@@ -164,6 +179,11 @@ function buildRow(s, canWrite, canDelete, profile) {
         </td>
     ` : '';
 
+    const destekTuru = s.destek_turu || 'Online';
+    const destekTuruBadge = destekTuru === 'Sahada' 
+        ? `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>Sahada</span>`
+        : `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>Online</span>`;
+
     return `
         <tr class="group cursor-pointer hover:bg-slate-50 transition-colors" data-status="${escHtml(s.status)}" data-id="${s.id}">
             <td class="px-2 py-3 truncate">
@@ -172,6 +192,7 @@ function buildRow(s, canWrite, canDelete, profile) {
             <td class="px-2 py-3 font-medium text-gray-800 truncate" title="${customer}">${customer}</td>
             <td class="px-2 py-3 text-gray-700 truncate" title="${escHtml(s.subject)}">${escHtml(s.subject)}</td>
             <td class="px-2 py-3 text-gray-600 truncate" title="${escHtml(s.caller_name)}">${escHtml(s.caller_name)}</td>
+            <td class="px-2 py-3 whitespace-nowrap">${destekTuruBadge}</td>
             <td class="px-2 py-3 text-gray-600 truncate" title="${assignee}">${assignee}</td>
             <td class="px-2 py-3 text-gray-500 text-xs truncate" title="${formatDateTime(s.start_time)}">${formatDateTime(s.start_time)}</td>
             <td class="px-2 py-3 whitespace-nowrap">${priceCell}</td>
@@ -251,6 +272,15 @@ function buildNewSupportModal(custOptions, staffOptions) {
                                 <option value="Devam Ediyor">Devam Ediyor</option>
                                 <option value="Cozuldu">Çözüldü</option>
                                 <option value="Kapali">Kapalı</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Destek Türü <span class="text-red-500">*</span></label>
+                            <select name="destek_turu" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Online">Online</option>
+                                <option value="Sahada">Sahada</option>
                             </select>
                         </div>
 
@@ -475,6 +505,7 @@ function fillSupportForm(form, s) {
     form.querySelector('[name="description"]').value  = s.description  || '';
     form.querySelector('[name="assigned_to"]').value  = s.assigned_to  || '';
     form.querySelector('[name="status"]').value       = s.status       || 'Acik';
+    form.querySelector('[name="destek_turu"]').value  = s.destek_turu  || 'Online';
     form.querySelector('[name="resolution"]').value   = s.resolution   || '';
     form.querySelector('[name="notes"]').value        = s.notes        || '';
 
@@ -510,6 +541,7 @@ async function saveSupport(form, profile) {
         description:   fd.get('description')?.trim() || null,
         assigned_to:   fd.get('assigned_to')         || null,
         status:        fd.get('status')              || 'Acik',
+        destek_turu:   fd.get('destek_turu')         || 'Online',
         resolution:    fd.get('resolution')?.trim()  || null,
         notes:         fd.get('notes')?.trim()        || null,
         servis_tipi:   servisTipi,
