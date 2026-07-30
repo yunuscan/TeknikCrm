@@ -3,28 +3,26 @@
 // Oturum yonetimi, sayfa yonlendirme, sidebar yonetimi
 // ============================================================
 
-import { supabase }              from './supabase-config.js';
+import { supabase } from './supabase-config.js';
 import { getSession, fetchProfile, getInitials, signOut } from './auth.js';
 import { showLoading, showToast } from './utils.js';
 
-import { renderDashboard }        from './modules/dashboard.js';
-import { renderCustomers }        from './modules/customers.js';
+import { renderDashboard } from './modules/dashboard.js';
+import { renderCustomers } from './modules/customers.js';
 import { renderTechnicalSupport } from './modules/technical-support.js';
-import { renderTasks }            from './modules/tasks.js';
-import { renderCalendar }         from './modules/calendar.js';
-import { renderVisits }           from './modules/visits.js';
-import { renderReports }          from './modules/reports.js';
-import { renderUsers }            from './modules/users.js';
-import { renderSettings }         from './modules/settings.js';
-import { renderTools, downloadToolFile, handleIncrementCount } from './modules/tools.js';
-import { escHtml } from './utils.js';
+import { renderTasks } from './modules/tasks.js';
+import { renderCalendar } from './modules/calendar.js';
+import { renderVisits } from './modules/visits.js';
+import { renderReports } from './modules/reports.js';
+import { renderUsers } from './modules/users.js';
+import { renderSettings } from './modules/settings.js';
 
 // ---------------------------------------------------
 // Uygulama durumu
 // ---------------------------------------------------
 
 let currentProfile = null;
-let currentView    = null;
+let currentView = null;
 let quickToolsCache = [];
 
 // ---------------------------------------------------
@@ -34,17 +32,18 @@ let quickToolsCache = [];
 // ---------------------------------------------------
 
 const ROUTES = {
-    dashboard:          { handler: renderDashboard,        roles: [] },
-    customers:          { handler: renderCustomers,         roles: [] },
-    sales:              { handler: renderSalesPlaceholder,  roles: ['Yonetici', 'Satis Personeli'] },
+    dashboard: { handler: renderDashboard, roles: [] },
+    customers: { handler: renderCustomers, roles: [] },
+    sales: { handler: renderSalesPlaceholder, roles: ['Yonetici', 'Satis Personeli'] },
     'technical-support': { handler: renderTechnicalSupport, roles: [] },
-    calendar:           { handler: renderCalendar,          roles: [] },
-    tasks:              { handler: renderTasks,             roles: [] },
-    visits:             { handler: renderVisits,            roles: [] },
-    tools:              { handler: renderTools,             roles: [] },
-    reports:            { handler: renderReports,           roles: ['Yonetici'] },
-    users:              { handler: renderUsers,             roles: ['Yonetici'] },
-    settings:           { handler: renderSettings,          roles: [] },
+    calendar: { handler: renderCalendar, roles: [] },
+    tasks: { handler: renderTasks, roles: [] },
+    visits: { handler: renderVisits, roles: [] },
+    tools: { handler: renderTools, roles: [] },
+    reports: { handler: renderReports, roles: ['Yonetici'] },
+    users: { handler: renderUsers, roles: ['Yonetici'] },
+    settings: { handler: renderSettings, roles: [] },
+    warranties: { handler: renderWarranties, roles: [] },
 };
 
 // ---------------------------------------------------
@@ -143,10 +142,10 @@ function applyMenuVisibility(role) {
 function populateNavbar(profile) {
     const initials = getInitials(profile.full_name);
 
-    document.getElementById('user-avatar').textContent   = initials;
-    document.getElementById('nav-user-name').textContent  = profile.full_name;
-    document.getElementById('dd-name').textContent        = profile.full_name;
-    document.getElementById('dd-email').textContent       = profile.email;
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('nav-user-name').textContent = profile.full_name;
+    document.getElementById('dd-name').textContent = profile.full_name;
+    document.getElementById('dd-email').textContent = profile.email;
 
     const badge = document.getElementById('user-role-badge');
     badge.textContent = profile.role;
@@ -167,7 +166,7 @@ function initSidebarToggle() {
 // ---------------------------------------------------
 
 function initUserMenu() {
-    const btn      = document.getElementById('btn-user-menu');
+    const btn = document.getElementById('btn-user-menu');
     const dropdown = document.getElementById('user-dropdown');
 
     btn.addEventListener('click', e => {
@@ -220,7 +219,7 @@ async function loadQuickNavbarTools() {
         listContainer.innerHTML = quickToolsCache.map(item => {
             const isLink = item.tool_type === 'link';
             const isZip = !isLink && (item.file_name?.endsWith('.zip') || item.file_name?.endsWith('.rar'));
-            
+
             return `
                 <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 hover:border-indigo-300 transition-all gap-2">
                     <div class="flex items-center gap-2.5 truncate">
@@ -324,7 +323,7 @@ function initToolsMenu() {
             const textToCopy = "irm https://raw.githubusercontent.com/yunuscan/PosOtoKontrol/main/wolvox-check.ps1 | iex";
             try {
                 await navigator.clipboard.writeText(textToCopy);
-                
+
                 // Show success feedback
                 if (copyIcon && successIcon) {
                     copyIcon.classList.add('hidden');
@@ -334,7 +333,7 @@ function initToolsMenu() {
                         successIcon.classList.add('hidden');
                     }, 2000);
                 }
-                
+
                 showToast('Komut panoya kopyalandı.', 'success');
             } catch (err) {
                 console.error('Kopyalama hatası:', err);
