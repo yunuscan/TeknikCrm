@@ -66,11 +66,23 @@
                 </button>
             </form>
 
-            <div class="mt-5 text-center">
+            <div class="mt-5 text-center flex flex-col items-center gap-3">
                 <button id="btn-show-reset"
-                    class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline focus:outline-none">
+                    class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline focus:outline-none font-medium">
                     Sifremi Unuttum
                 </button>
+
+                <div class="w-full pt-4 border-t border-slate-100">
+                    <button type="button" id="btn-open-quick-tools"
+                        class="w-full py-2.5 px-4 bg-slate-50 hover:bg-indigo-50/60 text-slate-700 hover:text-indigo-700 border border-slate-200/80 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-2.5 transition-all shadow-xs group">
+                        <div class="p-1 rounded-lg bg-indigo-100/70 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                        </div>
+                        <span>Giriş Yapmadan Araçlar & Hızlı İndirmeler</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Sifre sifirlama formu -->
@@ -100,6 +112,65 @@
         <p class="text-center text-xs text-gray-400 mt-5">
             TeknikCRM &copy; <span id="year"></span>
         </p>
+    </div>
+
+    <!-- Quick Tools Modal (Girişiz Araçlar & İndirmeler) -->
+    <div id="quick-tools-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden overflow-y-auto overflow-x-hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Araçlar, Programlar & Bağlantılar</h3>
+                        <p class="text-xs text-slate-500">Giriş yapmadan hızlıca dosya indirebilir veya faydalı linkleri açabilirsiniz.</p>
+                    </div>
+                </div>
+                <button type="button" id="btn-close-quick-tools" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-xl transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Controls (Arama ve Kategori Filtresi) -->
+            <div class="px-6 pt-4 pb-3 border-b border-slate-100 bg-white space-y-3">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" id="quick-tools-search" placeholder="Program, yazıcı aracı veya link ara..." 
+                        class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                </div>
+
+                <!-- Categories -->
+                <div id="quick-tools-categories" class="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
+                    <!-- Dinamik olarak doldurulur -->
+                </div>
+            </div>
+
+            <!-- Content List/Grid -->
+            <div class="p-6 overflow-y-auto flex-1 max-h-[60vh] bg-slate-50/30">
+                <div id="quick-tools-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Araç Kartları -->
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
+                <span id="quick-tools-count-info">Yükleniyor...</span>
+                <button type="button" id="btn-quick-tools-done" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-colors">
+                    Kapat
+                </button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
@@ -223,6 +294,242 @@
                 submitBtn.textContent = 'Sifirlama Baglantisi Gonder';
             }
         });
+
+        // ---------------------------------------------------
+        // Hızlı Araçlar & İndirmeler (Girişsiz Erişim)
+        // ---------------------------------------------------
+        let quickToolsState = [];
+        let quickToolsActiveCategory = 'all';
+        let quickToolsSearchQuery = '';
+
+        const quickToolsModal = document.getElementById('quick-tools-modal');
+        const btnOpenQuickTools = document.getElementById('btn-open-quick-tools');
+        const btnCloseQuickTools = document.getElementById('btn-close-quick-tools');
+        const btnQuickToolsDone = document.getElementById('btn-quick-tools-done');
+        const quickToolsSearch = document.getElementById('quick-tools-search');
+        const quickToolsCategories = document.getElementById('quick-tools-categories');
+        const quickToolsList = document.getElementById('quick-tools-list');
+        const quickToolsCountInfo = document.getElementById('quick-tools-count-info');
+
+        function openQuickToolsModal() {
+            quickToolsModal.classList.remove('hidden');
+            quickToolsModal.classList.add('flex');
+            fetchAndRenderQuickTools();
+        }
+
+        function closeQuickToolsModal() {
+            quickToolsModal.classList.add('hidden');
+            quickToolsModal.classList.remove('flex');
+        }
+
+        btnOpenQuickTools?.addEventListener('click', openQuickToolsModal);
+        btnCloseQuickTools?.addEventListener('click', closeQuickToolsModal);
+        btnQuickToolsDone?.addEventListener('click', closeQuickToolsModal);
+
+        quickToolsModal?.addEventListener('click', (e) => {
+            if (e.target === quickToolsModal) closeQuickToolsModal();
+        });
+
+        quickToolsSearch?.addEventListener('input', (e) => {
+            quickToolsSearchQuery = e.target.value.toLowerCase().trim();
+            renderQuickToolsGrid();
+        });
+
+        function formatFileSize(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function getFileIconBadge(fileName, toolType = 'file') {
+            if (toolType === 'link') {
+                return {
+                    bg: 'bg-sky-100 dark:bg-sky-950/50',
+                    text: 'text-sky-600 dark:text-sky-400',
+                    extBadge: 'WEB LİNK',
+                    icon: `<svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>`
+                };
+            }
+            const ext = (fileName || '').split('.').pop().toLowerCase();
+            if (['exe', 'msi'].includes(ext)) {
+                return {
+                    bg: 'bg-indigo-100', text: 'text-indigo-600', extBadge: 'EXE',
+                    icon: `<svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>`
+                };
+            } else if (['zip', 'rar', '7z', 'gz', 'tar'].includes(ext)) {
+                return {
+                    bg: 'bg-amber-100', text: 'text-amber-600', extBadge: ext.toUpperCase(),
+                    icon: `<svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>`
+                };
+            } else if (['ps1', 'bat', 'cmd', 'sh', 'py'].includes(ext)) {
+                return {
+                    bg: 'bg-emerald-100', text: 'text-emerald-600', extBadge: ext.toUpperCase(),
+                    icon: `<svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`
+                };
+            } else {
+                return {
+                    bg: 'bg-slate-100', text: 'text-slate-600', extBadge: ext.toUpperCase() || 'DOSYA',
+                    icon: `<svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`
+                };
+            }
+        }
+
+        async function fetchAndRenderQuickTools() {
+            try {
+                quickToolsList.innerHTML = `
+                    <div class="col-span-full py-12 flex flex-col items-center justify-center text-slate-400">
+                        <svg class="w-8 h-8 animate-spin text-indigo-600 mb-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-sm font-medium">Araçlar ve dosyalar yükleniyor...</p>
+                    </div>`;
+
+                const { data, error } = await supabase
+                    .from('tools')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                quickToolsState = data || [];
+                renderQuickToolsCategories();
+                renderQuickToolsGrid();
+            } catch (err) {
+                console.error('[Quick Tools Fetch Error]', err);
+                quickToolsList.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-red-500 text-sm">
+                        Araçlar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.
+                    </div>`;
+                if (quickToolsCountInfo) quickToolsCountInfo.textContent = '0 araç';
+            }
+        }
+
+        function renderQuickToolsCategories() {
+            if (!quickToolsCategories) return;
+            const categories = ['all', ...new Set(quickToolsState.map(t => t.category).filter(Boolean))];
+            
+            quickToolsCategories.innerHTML = categories.map(cat => {
+                const label = cat === 'all' ? 'Tümü' : cat;
+                const isActive = quickToolsActiveCategory === cat;
+                const cls = isActive
+                    ? 'bg-indigo-600 text-white shadow-xs font-semibold'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium';
+                return `<button type="button" data-category="${cat}" class="quick-cat-btn px-3 py-1 rounded-lg text-xs transition-colors ${cls}">${label}</button>`;
+            }).join('');
+
+            quickToolsCategories.querySelectorAll('.quick-cat-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    quickToolsActiveCategory = btn.getAttribute('data-category');
+                    renderQuickToolsCategories();
+                    renderQuickToolsGrid();
+                });
+            });
+        }
+
+        function renderQuickToolsGrid() {
+            if (!quickToolsList) return;
+
+            const filtered = quickToolsState.filter(item => {
+                const matchCategory = quickToolsActiveCategory === 'all' || item.category === quickToolsActiveCategory;
+                const matchSearch = !quickToolsSearchQuery || 
+                    (item.name && item.name.toLowerCase().includes(quickToolsSearchQuery)) ||
+                    (item.description && item.description.toLowerCase().includes(quickToolsSearchQuery)) ||
+                    (item.category && item.category.toLowerCase().includes(quickToolsSearchQuery));
+                return matchCategory && matchSearch;
+            });
+
+            if (quickToolsCountInfo) {
+                quickToolsCountInfo.textContent = `Toplam ${filtered.length} araç listeleniyor`;
+            }
+
+            if (filtered.length === 0) {
+                quickToolsList.innerHTML = `
+                    <div class="col-span-full py-12 flex flex-col items-center justify-center text-slate-400">
+                        <svg class="w-12 h-12 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <p class="text-sm font-medium text-slate-600">Aradığınız kriterlere uygun araç bulunamadı.</p>
+                    </div>`;
+                return;
+            }
+
+            quickToolsList.innerHTML = filtered.map(item => {
+                const iconBadge = getFileIconBadge(item.file_name, item.tool_type);
+                const isLink = item.tool_type === 'link';
+                
+                let targetUrl = '#';
+                if (isLink) {
+                    targetUrl = item.external_url || '#';
+                } else if (item.file_path) {
+                    const { data } = supabase.storage.from('tools').getPublicUrl(item.file_path);
+                    targetUrl = data?.publicUrl || '#';
+                }
+
+                return `
+                    <div class="p-4 bg-white border border-slate-200/80 rounded-xl hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2.5 rounded-xl ${iconBadge.bg} shrink-0">
+                                        ${iconBadge.icon}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h4 class="font-bold text-sm text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors" title="${item.name}">${item.name}</h4>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md ${iconBadge.bg} ${iconBadge.text}">
+                                                ${iconBadge.extBadge}
+                                            </span>
+                                            <span class="text-xs text-slate-400">•</span>
+                                            <span class="text-xs text-slate-400 font-medium">${item.category || 'Genel'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ${item.description ? `<p class="text-xs text-slate-500 line-clamp-2 mt-2 leading-relaxed">${item.description}</p>` : ''}
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] text-slate-400 font-medium">
+                                ${isLink ? 'Web Linki' : formatFileSize(item.file_size)}
+                                ${item.download_count > 0 ? ` • ${item.download_count} kez indirildi` : ''}
+                            </span>
+                            
+                            <a href="${targetUrl}" 
+                               ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${item.file_name || item.name}" target="_blank"`}
+                               data-id="${item.id}"
+                               class="btn-quick-download inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg text-xs font-semibold transition-all">
+                                <span>${isLink ? 'Bağlantıyı Aç' : 'İndir'}</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    ${isLink 
+                                        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>'
+                                        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>'
+                                    }
+                                </svg>
+                            </a>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            quickToolsList.querySelectorAll('.btn-quick-download').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const toolId = btn.getAttribute('data-id');
+                    if (toolId) {
+                        try {
+                            const item = quickToolsState.find(t => t.id === toolId);
+                            if (item) {
+                                item.download_count = (item.download_count || 0) + 1;
+                                renderQuickToolsGrid();
+                                await supabase.from('tools').update({ download_count: item.download_count }).eq('id', toolId);
+                            }
+                        } catch (e) {
+                            console.warn('[Count update warning]', e);
+                        }
+                    }
+                });
+            });
+        }
     </script>
 </body>
 

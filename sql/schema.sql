@@ -495,7 +495,7 @@ ALTER TABLE public.tools ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY pol_tools_select
     ON public.tools FOR SELECT
-    USING (auth.uid() IS NOT NULL);
+    USING (true);
 
 CREATE POLICY pol_tools_insert
     ON public.tools FOR INSERT
@@ -503,7 +503,7 @@ CREATE POLICY pol_tools_insert
 
 CREATE POLICY pol_tools_update
     ON public.tools FOR UPDATE
-    USING (auth.uid() IS NOT NULL);
+    USING (true);
 
 CREATE POLICY pol_tools_delete
     ON public.tools FOR DELETE

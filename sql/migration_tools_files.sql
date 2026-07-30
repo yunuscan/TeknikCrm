@@ -44,7 +44,7 @@ ALTER TABLE public.tools ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS pol_tools_select ON public.tools;
 CREATE POLICY pol_tools_select
     ON public.tools FOR SELECT
-    USING (auth.uid() IS NOT NULL);
+    USING (true);
 
 DROP POLICY IF EXISTS pol_tools_insert ON public.tools;
 CREATE POLICY pol_tools_insert
@@ -54,7 +54,7 @@ CREATE POLICY pol_tools_insert
 DROP POLICY IF EXISTS pol_tools_update ON public.tools;
 CREATE POLICY pol_tools_update
     ON public.tools FOR UPDATE
-    USING (auth.uid() IS NOT NULL);
+    USING (true);
 
 DROP POLICY IF EXISTS pol_tools_delete ON public.tools;
 CREATE POLICY pol_tools_delete
