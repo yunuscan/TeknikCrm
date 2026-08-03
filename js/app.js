@@ -16,6 +16,8 @@ import { renderVisits } from './modules/visits.js';
 import { renderReports } from './modules/reports.js';
 import { renderUsers } from './modules/users.js';
 import { renderSettings } from './modules/settings.js';
+import { renderTools } from './modules/tools.js';
+import { renderWarranties } from './modules/warranties.js';
 
 // ---------------------------------------------------
 // Uygulama durumu
